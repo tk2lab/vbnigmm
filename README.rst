@@ -3,6 +3,17 @@ vbnigmm
 
 Variational Bayes algorithm for Normal Inverse Gaussian Mixture Models
 
+Demonstration
+-------------
+
+The results of the sample simulation data can be 
+checked by the following procedure:
+
+.. code-block:: bash
+
+    poetry run jupyter lab
+    # open example.ipynb in jupyter environment
+
 Installation
 ------------
 
@@ -28,14 +39,6 @@ you can run the following code:
     model = Model()
     model.fit(x)
     label = model.predict(x)
-
-The results of the sample simulation data can be 
-checked by the following procedure:
-
-.. code-block:: bash
-
-    poetry run jupyter lab
-    # open example.ipynb in jupyter environment
 
 Citation
 --------
