@@ -4,7 +4,7 @@ version = "1.0.0"
 description = "Variational Bayes algorithm for normal inverse Gaussian mixture models"
 license = "GPL-3.0-only"
 authors = ["TAKEKAWA Takashi <takekawa@tk2lab.org>"]
-readme = 'README.md'
+readme = 'README.rst'
 repository = "https://github.com/tk2lab/vbnigmm"
 keywords = ["clustering"]
 
