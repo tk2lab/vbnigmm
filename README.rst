@@ -16,13 +16,26 @@ The package can be build using poetry and installed using pip:
 Examples
 --------
 
+If you want to apply vbnigmm to your data,
+you can run the following code:
+
 .. code-block:: python
 
     from vbnigmm import BaysianNIGMixture as Model
 
+    # x is numpy.ndarray of 2D
+
     model = Model()
     model.fit(x)
     label = model.predict(x)
+
+The results of the sample simulation data can be 
+checked by the following procedure:
+
+.. code-block:: bash
+
+    poetry run jupyter lab
+    # open example.ipynb in jupyter environment
 
 Citation
 --------
