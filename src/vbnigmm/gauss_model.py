@@ -18,11 +18,10 @@ class BayesianGaussianMixture(MixtureBase):
     def _get_prior(self, x, mean=None, cov=None,
                    concentration_prior_type='dpm', l0=None, r0=None,
                    mean_scale=1.0, cov_scale=0.3, cov_reliability=2.0):
-        x, mean, cov = check_data(x, mean, cov)
+        m0, cov = check_data(x, mean, cov)
         l0, r0 = check_concentration(concentration_prior_type, l0, r0)
         s0, t0 = check_covariance(cov_reliability, cov_scale, cov)
         u0 = (cov_scale / mean_scale) ** 2
-        m0 = mean
         return l0, r0, s0, t0, u0, m0
 
     def _init_expect(self, z):
