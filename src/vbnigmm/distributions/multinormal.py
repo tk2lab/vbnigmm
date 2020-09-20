@@ -8,7 +8,7 @@ import scipy.special as sp
 from .basedist import BaseDist
 
 
-class Normal(BaseDist):
+class MultivariateNormal(BaseDist):
 
     def __init__(self, tau, *args):
         u, m = map(np.asarray, args)
