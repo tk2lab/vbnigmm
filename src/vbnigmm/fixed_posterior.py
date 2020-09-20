@@ -48,13 +48,6 @@ class BayesianFixedNIGMixturePosterior(BayesianNIGMixturePosterior):
                 + self.tau.log_det_mean / 2
                 - ydist.log_const
             )
-            c = ~np.isfinite(yz.sum(axis=0))
-            if np.any(c):
-                l, r, f, g, s, t, u, v, w, m, n = self.params
-                print('lmd.moment', self.lmd.moment[c])
-                print('tau', self.tau.mean[c])
-                print('zbias', zbias[c])
-                print('zmean', zmean[:, c])
 
             self._save_x = x
             self._save_yz = yz
