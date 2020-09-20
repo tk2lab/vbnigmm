@@ -6,6 +6,12 @@ import numpy as np
 
 from .mixturebase import MixtureBase
 from .nig_posterior import BayesianNIGMixturePosterior
+from .check import check_data
+from .check import check_bias
+from .check import check_concentration
+from .check import check_normality
+from .check import check_covariance
+from .check import check_scale
 
 
 class BayesianNIGMixture(MixtureBase):
@@ -23,39 +29,17 @@ class BayesianNIGMixture(MixtureBase):
                    normality_mean=3.0, normality_reliability=1.0,
                    mean_scale=1.0, cov_scale=0.3, cov_reliability=2.0,
                    bias_scale=0.3, mean_bias_corr=0.0):
-        x, mean, cov = self._check_data(x, mean, cov)
-        if bias is None:
-            bias = np.zeros_like(mean)
-        elif bias.ndim != 1:
-            raise ValueError('bias must be 1d')
-
-        l0, r0 = self._check_concentration(concentration_prior_type, l0, r0)
-        f0, g0, h0 = self._check_normality(
+        m0, cov = check_data(x, mean, cov)
+        n0 = check_bias(m0, bias)
+        l0, r0 = check_concentration(concentration_prior_type, l0, r0)
+        f0, g0, h0 = check_normality(
             normality_prior_type, normality_mean, normality_reliability,
         )
-        s0, t0 = self._check_covariance(cov_reliability, cov_scale, cov)
-        corrinv = (1 - mean_bias_corr ** 2)
-        covmean = cov_scale / mean_scale
-        u0 = covmean ** 2 / corrinv
-        w0 = covmean * mean_bias_corr / bias_scale / corrinv
-        v0 = 1 / bias_scale ** 2 / corrinv
-        m0 = mean
-        n0 = bias
+        s0, t0 = check_covariance(cov_reliability, cov_scale, cov)
+        u0, v0, w0 = check_scale(
+            mean_scale, cov_scale, bias_scale, mean_bias_corr,
+        )
         return l0, r0, f0, g0, h0, s0, t0, u0, v0, w0, m0, n0
-
-    @staticmethod
-    def _check_normality(prior_type, mean, reliability):
-        if prior_type == 'invgauss':
-            f0 = reliability / mean
-            g0 = reliability * mean
-            h0 = -1 / 2
-        elif prior_type == 'gamma':
-            f0 = 2 * reliability / mean
-            g0 = 0
-            h0 = reliability
-        else:
-            raise ValueError('normality_prior_type should be inverse_gaussian or gamma')
-        return f0, g0, h0
 
     def _init_expect(self, z):
         return z, np.full_like(z, self.yp0), np.full_like(z, self.ym0)

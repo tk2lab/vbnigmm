@@ -5,6 +5,9 @@ __credits__ = 'Copyright 2020, TAKEKAWA Takashi'
 import numpy as np
 
 from .nig_model import BayesianNIGMixture
+from .check import check_data
+from .check import check_concentration
+from .check import check_covariance
 from .fixed_posterior import BayesianFixedNIGMixturePosterior
 
 
@@ -17,15 +20,15 @@ class BayesianFixedNIGMixture(BayesianNIGMixture):
                    normality_mean=5.0, normality_reliability=1.0,
                    mean_scale=1.0, cov_scale=0.3, cov_reliability=2.0,
                    bias_scale=0.3, mean_bias_corr=0.0):
-        x, mean, cov = self._check_data(x, mean, cov)
+        x, mean, cov = check_data(x, mean, cov)
         if bias is None:
             bias = np.zeros_like(mean)
         elif bias.ndim != 1:
             raise ValueError('bias must be 1d')
 
-        l0, r0 = self._check_concentration(concentration_prior_type, l0, r0)
+        l0, r0 = check_concentration(concentration_prior_type, l0, r0)
         f0, g0 = normality_mean, normality_reliability / (normality_mean ** 2)
-        s0, t0 = self._check_covariance(cov_reliability, cov_scale, cov)
+        s0, t0 = check_covariance(cov_reliability, cov_scale, cov)
         corrinv = (1 - mean_bias_corr ** 2)
         covmean = cov_scale / mean_scale
         u0 = covmean ** 2 / corrinv

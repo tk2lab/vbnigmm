@@ -5,6 +5,9 @@ __credits__ = 'Copyright 2020, TAKEKAWA Takashi'
 import numpy as np
 
 from .mixturebase import MixtureBase
+from .check import check_data
+from .check import check_concentration
+from .check import check_covariance
 from .gauss_posterior import BayesianGaussianMixturePosterior
 
 
@@ -15,9 +18,9 @@ class BayesianGaussianMixture(MixtureBase):
     def _get_prior(self, x, mean=None, cov=None,
                    concentration_prior_type='dpm', l0=None, r0=None,
                    mean_scale=1.0, cov_scale=0.3, cov_reliability=2.0):
-        x, mean, cov = self._check_data(x, mean, cov)
-        l0, r0 = self._check_concentration(concentration_prior_type, l0, r0)
-        s0, t0 = self._check_covariance(cov_reliability, cov_scale, cov)
+        x, mean, cov = check_data(x, mean, cov)
+        l0, r0 = check_concentration(concentration_prior_type, l0, r0)
+        s0, t0 = check_covariance(cov_reliability, cov_scale, cov)
         u0 = (cov_scale / mean_scale) ** 2
         m0 = mean
         return l0, r0, s0, t0, u0, m0
