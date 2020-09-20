@@ -6,13 +6,14 @@ __credits__ = 'Copyright 2020, TAKEKAWA Takashi'
 
 from .basedist import BaseDist
 from .dirichlet import Dirichlet
-from .gamma import Gamma
+from .normal import Normal
 from .wishart import Wishart
-from .invgauss import InverseGaussian
 from .truncatedgauss import TruncatedGaussian
+from .gamma import Gamma
+from .invgauss import InverseGaussian
 
 
 __all__ = [
-    'BaseDist', 'Dirichlet', 'Gamma', 'Wishart',
-    'InverseGaussian', 'TruncatedGaussian'
+    'BaseDist', 'Dirichlet', 'Normal', 'Wishart',
+    'TruncatedGaussian' 'Gamma', 'InverseGaussian',
 ]
