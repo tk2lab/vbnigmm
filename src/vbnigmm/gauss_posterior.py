@@ -5,7 +5,10 @@ __credits__ = 'Copyright 2020, TAKEKAWA Takashi'
 import numpy as np
 import scipy.special as sp
 
-from .distributions import BaseDist, Dirichlet, Normal, Wishart
+from .distributions import BaseDist
+from .distributions import Dirichlet
+from .distributions import Wishart
+from .distributions import MultivariateNormal
 
 
 class BayesianGaussianMixturePosterior(BaseDist):
@@ -13,7 +16,7 @@ class BayesianGaussianMixturePosterior(BaseDist):
     def __init__(self, l, r, s, t, u, m):
         alpha = Dirichlet(l, r)
         tau = Wishart(s, t, inv=True)
-        mu = Normal(tau, u, m)
+        mu = MultivariateNormal(tau, u, m)
         self.params = l, r, s, t, u, m
         self._dists = alpha, tau, mu
 
