@@ -5,12 +5,13 @@ __credits__ = 'Copyright 2020, TAKEKAWA Takashi'
 import numpy as np
 import scipy.special as sp
 
-from .nig_posterior import BayesianNIGMixturePosterior, _MeanBias
+from .nig_posterior import BayesianNIGMixturePosterior
 from .distributions import BaseDist
 from .distributions import Dirichlet
-from .distributions import TruncatedGaussian
 from .distributions import Wishart
+from .distributions import BlockNormal
 from .distributions import InverseGaussian
+from .distributions import TruncatedGaussian
 
 
 class BayesianFixedNIGMixturePosterior(BayesianNIGMixturePosterior):
@@ -20,7 +21,7 @@ class BayesianFixedNIGMixturePosterior(BayesianNIGMixturePosterior):
         self.alpha = Dirichlet(l, r)
         self.lmd = TruncatedGaussian(f, np.sqrt(g))
         self.tau = Wishart(s, t, inv=True)
-        self.mu_beta = _MeanBias(self.tau, u, v, w, m, n)
+        self.mu_beta = BlockNormal(self.tau, u, v, w, m, n)
         self._save_x = None
 
     def cross_entropy(self, l0, r0, f0, g0, s0, t0, u0, v0, w0, m0, n0):
@@ -48,13 +49,6 @@ class BayesianFixedNIGMixturePosterior(BayesianNIGMixturePosterior):
                 + self.tau.log_det_mean / 2
                 - ydist.log_const
             )
-            c = ~np.isfinite(yz.sum(axis=0))
-            if np.any(c):
-                l, r, f, g, s, t, u, v, w, m, n = self.params
-                print('lmd.moment', self.lmd.moment[c])
-                print('tau', self.tau.mean[c])
-                print('zbias', zbias[c])
-                print('zmean', zmean[:, c])
 
             self._save_x = x
             self._save_yz = yz
