@@ -3,8 +3,8 @@ vbnigmm
 
 Variational Bayes algorithm for Normal Inverse Gaussian Mixture Models
 
-Instration:
------------
+Installation
+------------
 
 The package can be build using poetry and installed using pip:
 
@@ -13,8 +13,8 @@ The package can be build using poetry and installed using pip:
     poetry build
     pip install dist/vbnigmm-1.0.0-py3-none-any.whl
 
-Examples:
----------
+Examples
+--------
 
 .. code-block:: python
 
@@ -24,8 +24,8 @@ Examples:
     model.fit(x)
     label = model.predict(x)
 
-Citation:
----------
+Citation
+--------
 
 If you use vbnigmm in a scientific paper,
 please consider citing the following paper:
