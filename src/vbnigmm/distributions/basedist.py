@@ -12,8 +12,11 @@ class BaseDist(object):
     def pdf(self, x):
         return np.exp(self.log_pdf(x))
 
-    def entropy(self):
-        return self.cross_entropy(*self.params)
+    def cross_entropy(self, other):
+        return -other.log_pdf(self)
 
-    def kl(self, *params):
-        return self.cross_entropy(*params) - self.entropy()
+    def entropy(self):
+        return self.cross_entropy(self)
+
+    def kl(self, other):
+        return self.cross_entropy(other) - self.entropy()

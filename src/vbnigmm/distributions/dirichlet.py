@@ -8,34 +8,29 @@ import numpy as np
 import scipy.special as sp
 
 from .basedist import BaseDist
-from .dpm import DirichletProcess
 
 
-def Dirichlet(l, r=None):
-    return DirichletDist(l) if r is None else DirichletProcess(l, r)
+class Dirichlet(BaseDist):
 
+    def __init__(self, alpha):
+        self.alpha = alpha
 
-class DirichletDist(BaseDist):
+    @property
+    def precision(self):
+        return alpha.sum(axis=-1)
 
-    def __init__(self, *args):
-        alpha, = (np.asarray(a) for a in args if a is not None)
-        self.params = alpha,
-        self.dof = alpha.sum()
-        self.mean = alpha / alpha.sum()
-        self.log_mean = sp.digamma(alpha) - sp.digamma(alpha.sum())
+    @property
+    def mean(self):
+        return self.alpha / self.precision
+
+    @property
+    def mean_log(self):
+        return sp.digamma(self.alpha) - sp.digamma(self.precision)
 
     def log_pdf(self, x):
-        alpha, = self.params
+        log_x = x.mean_log if hasattr(x, 'mean_log') else np.log(x)
         return (
-            + sp.gammaln(alpha.sum())
-            - sp.gammaln(alpha).sum()
-            + sp.xlogy(alpha - 1, x).sum()
-        )
-
-    def cross_entropy(self, *args):
-        alpha, = (np.asarray(a) for a in args if a is not None)
-        return -(
-            + sp.gammaln(alpha.sum()) / alpha.size
-            - sp.gammaln(alpha)
-            + (alpha - 1) * self.log_mean
+            + sp.gammaln(self.precision)
+            - sp.gammaln(self.alpha).sum(axis=-1)
+            + sp.xlogy(self.alpha - 1, x).sum(axis=-1)
         )
