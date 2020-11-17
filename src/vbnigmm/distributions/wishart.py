@@ -3,45 +3,49 @@
 __author__ = 'TAKEKAWA Takashi <takekawa@tk2lab.org>'
 __credits__ = 'Copyright 2018, TAKEKAWA Takashi'
 
+import math
 
 import numpy as np
 import scipy.special as sp
 
 from .basedist import BaseDist
-from .math  import multidigamma
+from .math  import multilgamma, multidigamma
 
 
 class Wishart(BaseDist):
 
-    def __init__(self, s, t, inv=False):
-        s, t = map(np.asarray, (s, t))
-        if inv:
-            t = np.linalg.inv(t)
-        d = t.shape[-1]
-        self.params = s, t
-        self.prec_factor = s
-        self.mean = t * s[..., None, None]
+    def __init__(self, alpha, beta):
+        self.alpha = alpha
+        self.beta = beta
 
     @property
-    def log_det_mean(self):
-        s, t = self.params
-        d = t.shape[-1]
-        return multidigamma(s / 2, d) + np.linalg.slogdet(t * 2)[1]
+    def mean(self):
+        a, b = self.alpha, self.beta
+        return b * a[..., None, None]
 
-    def cross_entropy(self, s, t, inv=False):
-        s, t = map(np.asarray, (s, t))
-        d = t.shape[-1]
-        if inv:
-            return - (
-                + s * np.linalg.slogdet(t / 2)[1] / 2
-                - sp.multigammaln(s / 2, d)
-                + (s - d - 1) * self.log_det_mean / 2
-                - (t * self.mean).sum(axis=(-2, -1)) / 2
-            )
-        else:
-            return - (
-                - s * np.linalg.slogdet(t * 2)[1] / 2
-                - sp.multigammaln(s / 2, d)
-                + (s - d - 1) * self.log_det_mean / 2
-                - (np.linalg.inv(t) * self.mean).sum(axis=(-2, -1)) / 2
-            )
+    @property
+    def mean_inv(self):
+        a, b = self.alpha, self.beta
+        d = self.beta.shape[-1]
+        return np.linalg.inv(b) / (a - d - 1)[..., None, None]
+
+    @property
+    def mean_log_det(self):
+        a, b = self.alpha, self.beta
+        d = b.shape[-1]
+        return (
+            + multidigamma(a / 2, d)
+            + (math.log(2) * d + np.linalg.logdet(b))
+        )
+
+    def log_pdf(self, x):
+        a, b = self.alpha, self.beta
+        d = b.shape[-1]
+        x = val(x)
+        logdetx = logdet(x)
+        return (
+            - multilgamma(a / 2, d)
+            - (a / 2) * (math.log(2) * d + np.linalg.logdet(b))
+            + ((a - d - 1) / 2) * logdetx
+            - (1 / 2) * (x * b).sum(axis=(-2, -1))
+        )

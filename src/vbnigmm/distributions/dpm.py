@@ -12,8 +12,8 @@ from .basedist import BaseDist
 
 class DirichletProcess(BaseDist):
 
-    def __init__(self, alpha, beta):
-        self.base = Beta(alpha, beta)
+    def __init__(self, alpha):
+        self.base = Dirichlet(alpha)
 
     @property
     def mean(self):

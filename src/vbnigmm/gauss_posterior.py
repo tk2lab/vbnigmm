@@ -1,6 +1,7 @@
 __author__ = 'TAKEKAWA Takashi <takekawa@tk2lab.org>'
 __credits__ = 'Copyright 2020, TAKEKAWA Takashi'
 
+import math
 
 import numpy as np
 import scipy.special as sp
@@ -11,53 +12,34 @@ from .distributions import Wishart
 from .distributions import MultivariateNormal
 
 
+class GaussianMixture(BaseDist):
+
+    def __init__(self, alpha, tau, mu):
+        self.alpha = alpha
+        self.tau = tau
+        self.mu = mu
+
+    def log_pdf(self, x):
+        dim = x.shape[-1]
+        return (
+            + self.alpha.mean_log
+            - (dim / 2) * math.log(2 * math.pi)
+            + (1 / 2) * self.tau.mean_log_det
+            - (1 / 2) * self.mu.mahalanobis(x)
+        )
+
+
 class BayesianGaussianMixturePosterior(BaseDist):
 
     def __init__(self, l, r, s, t, u, m):
-        alpha = Dirichlet(l, r)
-        tau = Wishart(s, t, inv=True)
-        mu = MultivariateNormal(tau, u, m)
-        self.params = l, r, s, t, u, m
-        self._dists = alpha, tau, mu
+        self.alpha = Dirichlet(l, r)
+        self.tau = Wishart(s, t, inv=True)
+        self.mu = WishartGauss(m, u, self.tau) 
 
-    @property
-    def weight(self):
-        alpha, tau, mu = self._dists
-        return alpha.mean
+    def log_pdf(self, alpha, tau, mu):
+        return self.alpha.log_pdf(alpha) + self.tau.log_pdf(tau) + self.mu.log_pdf(mu)
 
-    @property
-    def mean(self):
-        l, r, s, t, u, m = self.params
-        return m
 
-    @property
-    def covariance(self):
-        alpha, tau, mu = self._dists
-        return np.linalg.inv(tau.mean)
+class WishartGauss(BaseDist):
 
-    def log_pdf(self, x):
-        return sp.logsumexp(self._expect(x), axis=-1)
-
-    def expect(self, x):
-        return sp.softmax(self._expect(x), axis=-1)
-
-    def expect_all(self, x):
-        return sp.softmax(self._expect(x), axis=-1),
-
-    def cross_entropy(self, a0, b0, s0, t0, u0, m0):
-        alpha1, tau1, mu1 = self._dists
-        return np.array([
-            alpha1.cross_entropy(a0, b0),
-            tau1.cross_entropy(s0, t0, inv=True),
-            mu1.cross_entropy(u0, m0),
-        ])
-
-    def _expect(self, x):
-        alpha, tau, mu = self._dists
-        d = x.shape[-1]
-        return (
-            + alpha.log_mean
-            - d * np.log(2 * np.pi) / 2
-            + tau.log_det_mean / 2
-            - mu.mahalanobis(x) / 2
-        )
+    def 

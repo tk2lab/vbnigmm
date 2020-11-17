@@ -7,7 +7,7 @@ __credits__ = 'Copyright 2020, TAKEKAWA Takashi'
 import numpy as np
 import scipy.special as sp
 
-from .basedist import BaseDist
+from .basedist import BaseDist, val, log, 
 
 
 class Beta(BaseDist):

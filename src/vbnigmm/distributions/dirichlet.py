@@ -5,9 +5,9 @@ __credits__ = 'Copyright 2018, TAKEKAWA Takashi'
 
 
 import numpy as np
-import scipy.special as sp
 
-from .basedist import BaseDist
+from .basedist import BaseDist, mean_log
+from .math import xlogy, lgamma, digamma
 
 
 class Dirichlet(BaseDist):
@@ -16,21 +16,20 @@ class Dirichlet(BaseDist):
         self.alpha = alpha
 
     @property
-    def precision(self):
-        return alpha.sum(axis=-1)
+    def sum(self):
+        return self.alpha.sum(axis=-1)
 
     @property
     def mean(self):
-        return self.alpha / self.precision
+        return self.alpha / self.sum[..., None]
 
     @property
     def mean_log(self):
-        return sp.digamma(self.alpha) - sp.digamma(self.precision)
+        return digamma(self.alpha) - digamma(self.sum)[..., None]
 
     def log_pdf(self, x):
-        log_x = x.mean_log if hasattr(x, 'mean_log') else np.log(x)
         return (
-            + sp.gammaln(self.precision)
-            - sp.gammaln(self.alpha).sum(axis=-1)
-            + sp.xlogy(self.alpha - 1, x).sum(axis=-1)
+            + gammaln(self.sum)
+            - gammaln(self.alpha).sum(axis=-1)
+            + ((self.alpha - 1) * mean_log(x)).sum(axis=-1)
         )

@@ -7,6 +7,8 @@ __credits__ = 'Copyright 2020, TAKEKAWA Takashi'
 import numpy as np
 import scipy.special as sp
 
+from scipy.special import multigammaln as multilgamma
+
 
 def multidigamma(x, d):
     return np.sum([sp.digamma(x - i / 2) for i in range(d)], axis=0)
