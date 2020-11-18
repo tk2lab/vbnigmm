@@ -29,7 +29,7 @@ class Dirichlet(BaseDist):
 
     def log_pdf(self, x):
         return (
-            + gammaln(self.sum)
-            - gammaln(self.alpha).sum(axis=-1)
+            + lgamma(self.sum)
+            - lgamma(self.alpha).sum(axis=-1)
             + ((self.alpha - 1) * mean_log(x)).sum(axis=-1)
         )

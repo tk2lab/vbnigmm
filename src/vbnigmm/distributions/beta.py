@@ -5,9 +5,9 @@ __credits__ = 'Copyright 2020, TAKEKAWA Takashi'
 
 
 import numpy as np
-import scipy.special as sp
 
-from .basedist import BaseDist, val, log, 
+from .basedist import BaseDist, mean, mean_log
+from .math import lgamma, digamma
 
 
 class Beta(BaseDist):
@@ -24,14 +24,15 @@ class Beta(BaseDist):
     @property
     def mean_log(self):
         a, b = self.alpha, self.beta
-        return sp.digamma(a) - sp.digamma(a + b)
+        return digamma(a) - digamma(a + b)
 
     def log_pdf(self, x):
         a, b = self.alpha, self.beta
+        logx = mean_log(x)
         logx = x.mean_log if hasattr(x, 'mean_log') else np.log(x)
         log1mx = x.mean_log1m if hasattr(x, 'mean_log1m') else np.log(1 - x)
         return (
-            sp.gammaln(a + b)
+            lgamma(a + b)
             - sp.gammaln(a)
             - sp.gammaln(b)
             + (a - 1) * logx

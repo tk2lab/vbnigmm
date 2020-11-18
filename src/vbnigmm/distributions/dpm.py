@@ -7,7 +7,8 @@ __credits__ = 'Copyright 2020, TAKEKAWA Takashi'
 import numpy as np
 import scipy.special as sp
 
-from .basedist import BaseDist
+from .basedist import BaseDist, mean
+from .dirichlet import Dirichlet
 
 
 class DirichletProcess(BaseDist):
@@ -17,16 +18,16 @@ class DirichletProcess(BaseDist):
 
     @property
     def mean(self):
-        m = self.base.mean()
-        return m * np.cumprod(1 - m, exclusive=True)
+        m = self.base.mean
+        return m[..., 0] * np.cumprod(m[..., 1], exclusive=True)
 
     @property
     def mean_log(self):
-        logx = self.base.mean_log()
-        log1mx = self.base.mean_log1m()
-        return logx + np.cumsum(log1mx, exclusive=True)
+        logm = self.base.mean_log
+        return logm[..., 0] + np.cumsum(logm[..., 1], exclusive=True)
 
     def log_pdf(self, x):
-        x = x.mean if hasattr(x, 'mean') else x
+        x = mean(x)[..., 0]
         y = x / (1 - np.cumsum(x, exclusive=True))
-        return np.sum(self.base.log_pdf(y), axis=-1)
+        z = np.stack([y, 1 - y], axis=1)
+        return np.sum(self.base.log_pdf(z), axis=-1)

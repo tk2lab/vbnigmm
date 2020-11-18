@@ -7,11 +7,14 @@ __credits__ = 'Copyright 2020, TAKEKAWA Takashi'
 import numpy as np
 import scipy.special as sp
 
+from scipy.special import xlogy
+from scipy.special import digamma
+from scipy.special import gammaln as lgamma
 from scipy.special import multigammaln as multilgamma
 
 
 def multidigamma(x, d):
-    return np.sum([sp.digamma(x - i / 2) for i in range(d)], axis=0)
+    return np.sum([digamma(x - i / 2) for i in range(d)], axis=0)
 
 
 def khratio(v, x):
