@@ -1,7 +1,3 @@
-__author__ = 'TAKEKAWA Takashi <takekawa@tk2lab.org>'
-__credits__ = 'Copyright 2020, TAKEKAWA Takashi'
-
-
 import numpy as np
 
 
@@ -19,7 +15,11 @@ def check_data(x, mean, cov):
     return mean, cov
 
 
-def check_concentration(prior_type, l0, r0):
+def check_concentration(alpha, py):
+    return 1, alpha, py
+
+
+def _check_concentration(prior_type, l0, r0):
     if (l0 == None) and (r0 == None):
         if prior_type == 'dd':
             l0 = 1.0

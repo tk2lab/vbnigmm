@@ -1,114 +1,81 @@
-"""(Generalized) Inverse Gaussian distributions."""
-
-__author__ = 'TAKEKAWA Takashi <takekawa@tk2lab.org>'
-__credits__ = 'Copyright 2018, TAKEKAWA Takashi'
-
-
 import numpy as np
-import scipy.special as sp
 
-from .basedist import BaseDist
+from .dist import Dist
 from .gamma import Gamma
-from .math import khratio
-from .cache import cache_property
+from ..linbase.scalar import Scalar, wrap_scalar
+from ..math import log2, log, sqrt, power, kve, khratio
 
 
-def InverseGaussian(a, b, c=-1 / 2, halfint=False):
+def InverseGauss(a, b, c=-1 / 2, halfint=False):
     if np.all(b == 0):
-        return InverseGaussianB0(a, c)
+        return Gamma(c, a / 2)
     if halfint:
-        return InverseGaussianHalfInt(a, b, c)
+        return _InverseGaussHalfInt(a, b, c)
     else:
-        return InverseGaussianDist(a, b, c)
+        return _InverseGauss(a, b, c)
 
 
-class InverseGaussianDist(BaseDist):
+class _InverseGauss(Dist, Scalar):
 
     def __init__(self, a, b, c=-1 / 2):
-        a, b, c = map(np.asarray, (a, b, c))
-        self.params = a, b, c
+        self.a = np.asarray(a)
+        self.b = np.asarray(b)
+        self.c = np.asarray(c)
         
-    @cache_property
+    @property
     def mode(self):
-        a, b, c = self.params
-        return ((c - 1) + np.sqrt(np.power(c - 1, 2) + a * b)) / a
+        a, b, c = self.a, self.b, self.c
+        return ((c - 1) + sqrt(power(c - 1, 2) + a * b)) / a
 
-    @cache_property
+    @property
     def mean(self):
         return self._kratio * self._omega
     
-    @cache_property
-    def inv_mean(self):
-        a, b, c = self.params
-        return self._kratio / self._omega - 2 * c / b
+    @property
+    def mean_inv(self):
+        return self._kratio / self._omega - 2 * self.c / self.b
 
-    @cache_property
-    def log_mean(self):
-        a, b, c = self.params
-        return self._klndv + np.log(self._omega)
+    @property
+    def mean_log(self):
+        return self._klndv + log(self._omega)
 
-    @cache_property
+    @property
     def log_const(self):
-        a, b, c = self.params
-        return sp.xlogy(-c, self._omega) + self._mu - np.log(2 * self._kve)
+        return self._mu - log2 - self.c * log(self._omega) - log(self._kve)
 
     def log_pdf(self, x):
-        a, b, c = self.params
-        return self.log_const + sp.xlogy(c - 1, x) - (a * x + b / x) / 2
-
-    def cross_entropy(self, *args):
-        a, b, c = map(np.asarray, args)
-        mu = np.sqrt(a * b)
-        omega = np.sqrt(b / a)
-        return - (
-            + sp.xlogy(-c, omega) + mu - np.log(2 * sp.kve(c, mu))
-            + (c - 1) * self.log_mean
-            - (a * self.mean + b * self.inv_mean) / 2
+        x = wrap_scalar(x)
+        return (
+            + self.log_const
+            + (self.c - 1) * x.mean_log
+            - (self.a * x.mean + self.b * x.mean_inv) / 2
         )
 
-    @cache_property
+    @property
     def _omega(self):
-        a, b, c = self.params
-        return np.sqrt(b / a)
+        return sqrt(self.b / self.a)
 
-    @cache_property
+    @property
     def _mu(self):
-        a, b, c = self.params
-        return np.sqrt(a * b)
+        return sqrt(self.a * self.b)
 
-    @cache_property
+    @property
     def _kve(self):
-        a, b, c = self.params
-        return sp.kve(c, self._mu)
+        return kve(self.c, self._mu)
 
-    @cache_property
+    @property
     def _kratio(self):
-        a, b, c = self.params
-        return sp.kve(c + 1, self._mu) / self._kve
+        return kve(self.c + 1, self._mu) / self._kve
 
-    @cache_property
+    @property
     def _klndv(self):
         small = 1e-10
-        a, b, c = self.params
-        kvdv = (sp.kve(c + small, self._mu) - self._kve) / small
+        kvdv = (kve(self.c + small, self._mu) - self._kve) / small
         return kvdv / self._kve
 
 
-class InverseGaussianHalfInt(InverseGaussianDist):
+class _InverseGaussHalfInt(_InverseGauss):
 
-    @cache_property
+    @property
     def _kratio(self):
-        a, b, c = self.params
-        return khratio(c, self._mu)
-
-
-class InverseGaussianB0(Gamma):
-    
-    def __init__(self, a, c):
-        super().__init__(c, a / 2)
-        
-    def cross_entropy(self, *args):
-        a, b, c = map(np.asarray, args)
-        if np.all(b == 0):
-            return super().cross_entropy(c, a / 2)
-        raise NotImplementedError()
+        return khratio(self.c, self._mu)

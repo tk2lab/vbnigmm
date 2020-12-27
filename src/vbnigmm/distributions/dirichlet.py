@@ -1,19 +1,14 @@
-"""Dirichlet distributions."""
-
-__author__ = 'TAKEKAWA Takashi <takekawa@tk2lab.org>'
-__credits__ = 'Copyright 2018, TAKEKAWA Takashi'
-
-
 import numpy as np
 
-from .basedist import BaseDist, mean_log
-from .math import xlogy, lgamma, digamma
+from .dist import Dist
+from ..linbase.vector import Vector, wrap_vector
+from ..math import xlogy, lgamma, digamma
 
 
-class Dirichlet(BaseDist):
+class Dirichlet(Dist, Vector):
 
     def __init__(self, alpha):
-        self.alpha = alpha
+        self.alpha = np.asarray(alpha)
 
     @property
     def sum(self):
@@ -28,8 +23,9 @@ class Dirichlet(BaseDist):
         return digamma(self.alpha) - digamma(self.sum)[..., None]
 
     def log_pdf(self, x):
+        x = wrap_vector(x)
         return (
             + lgamma(self.sum)
             - lgamma(self.alpha).sum(axis=-1)
-            + ((self.alpha - 1) * mean_log(x)).sum(axis=-1)
+            + ((self.alpha - 1) * x.mean_log).sum(axis=-1)
         )
