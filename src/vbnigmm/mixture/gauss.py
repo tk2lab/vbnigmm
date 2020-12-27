@@ -3,6 +3,7 @@ import numpy as np
 from .check import check_data
 from .check import check_concentration
 from .check import check_covariance
+from .mixture import Mixture
 from .dpm import DirichletProcess
 from ..distributions.wishart import Wishart
 from ..distributions.gauss import Gauss
@@ -26,7 +27,7 @@ class GaussMixtureParameters(Dist):
         )
 
 
-class GaussMixtureSolver(MixtureSolver):
+class GaussMixture(Mixture):
 
     def setup(self, x, mean=None, cov=None,
               concentration=1.0, concentration_decay=0.0,
@@ -43,8 +44,10 @@ class GaussMixtureSolver(MixtureSolver):
         return (
             + q.alpha.mean_log
             - (d / 2) * log2pi + (1 / 2) * q.tau.mean_log_det
-            - (1 / 2) * q.tau.trace_dot_outer(q.mu.mean - x)
-            - (1 / 2) * q.tau.trace_dot_inv(q.mu.precision)
+            - (1 / 2) * (
+                + q.tau.trace_dot_inv(q.mu.precision)
+                + q.tau.trace_dot_outer(x - q.mu.mean)
+            )
         )
 
     def estep(self, x, q):

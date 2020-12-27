@@ -61,6 +61,14 @@ class NormalInverseGaussMixture(Mixture):
     def _log_pdf(self, x, q=None):
         q = q or self.posterior
         d = x.shape[-1]
+        sz = (
+            + q.alpha.mean_log
+            - (1 / 2) * log2pi + (1 / 2) * q.beta.mean_log
+            - (d / 2) * log2pi + (1 / 2) * q.tau.mean_log_det
+            + q.beta.mean
+            - q.tau.trace_dot_inv(precision(q.xi, q.mu))
+            + q.tau.trace_dot_outer(q.xi.mean, x - q.mu.mean)
+        )
         sp = (
             + q.beta.mean
             + q.tau.trace_dot_inv(q.xi.precision)
@@ -69,17 +77,9 @@ class NormalInverseGaussMixture(Mixture):
         sm = (
             + q.beta.mean
             + q.tau.trace_dot_inv(q.mu.precision)
-            + q.tau.trace_dot_outer(q.mu.mean - x)
+            + q.tau.trace_dot_outer(x - q.mu.mean)
         )
-        sz = (
-            + q.alpha.mean_log
-            - (1 / 2) * log2pi + (1 / 2) * q.beta.mean_log + q.beta.mean
-            - (d / 2) * log2pi + (1 / 2) * q.tau.mean_log_det
-            - q.tau.trace_dot_outer(q.xi.mean, q.mu.mean - x)
-            - q.tau.trace_dot_inv(precision(q.xi, q.mu))
-        )
-        c = - (d + 1) / 2
-        y = InverseGauss(sp, sm, c, halfint=True)
+        y = InverseGauss(sp, sm, - (d + 1) / 2, halfint=True)
         return y, sz
 
     def log_pdf_joint(self, x, y, q=None):

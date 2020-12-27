@@ -1,6 +1,6 @@
 import numpy as np
 
-from vbnigmm.driver.nig import NormalInverseGaussMixture
+from vbnigmm import NormalInverseGaussMixture
 
 n, d = 100, 5
 x = np.random.randn(n, d)

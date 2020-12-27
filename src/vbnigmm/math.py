@@ -2,6 +2,7 @@ import math
 
 import numpy as np
 
+from numpy import inf
 from numpy import fabs
 from numpy import exp
 from numpy import log
@@ -17,6 +18,7 @@ from scipy.special import digamma
 from scipy.special import gammaln as lgamma
 from scipy.special import multigammaln as multi_lgamma
 from scipy.special import logsumexp as log_sum_exp
+from scipy.special import softmax
 
 
 log2 = math.log(2)

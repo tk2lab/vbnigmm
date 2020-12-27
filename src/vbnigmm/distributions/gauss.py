@@ -26,13 +26,12 @@ class Gauss(Dist, Vector):
 
     def log_pdf(self, x):
         x = wrap_vector(x)
-        dx = x.mean - self.mu.mean
-        dx2 = dx[..., None, :] * dx[..., :, None]
         return (
-            - (self.dim / 2) * log2pi
-            + (1 / 2) * self.tau.mean_log_det
-            - (1 / 2) * self.tau.trace_dot(dx2)
-            - (1 / 2) * self.tau.trace_dot_inv(x.precision)
-            - (1 / 2) * self.tau.trace_dot_inv(self.mu.precision)
-            + self.tau.trace_dot_inv(precision(self.mu, x))
+            - (self.dim / 2) * log2pi + (1 / 2) * self.tau.mean_log_det
+            - (1 / 2) * (
+                + self.tau.trace_dot_outer(x.mean - self.mu.mean)
+                + self.tau.trace_dot_inv(x.precision)
+                + self.tau.trace_dot_inv(self.mu.precision)
+                - 2 * self.tau.trace_dot_inv(precision(x, self.mu))
+            )
         )

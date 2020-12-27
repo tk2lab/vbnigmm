@@ -2,7 +2,7 @@ import numpy as np
 
 from .dist import Dist
 from ..linbase.vector import Vector, wrap_vector
-from ..math import xlogy, lgamma, digamma
+from ..math import lgamma, digamma
 
 
 class Dirichlet(Dist, Vector):
