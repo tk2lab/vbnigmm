@@ -7,8 +7,8 @@ from ..math.matrix import Matrix, wrap_matrix
 class Wishart(Dist, Matrix):
 
     def __init__(self, alpha, beta):
-        self.alpha = tk.as_array(alpha, dtype=tk.float32)
-        self.beta = tk.as_array(beta, dtype=tk.float32)
+        self.alpha = tk.as_array(alpha)
+        self.beta = tk.as_array(beta)
 
     @property
     def dim(self):

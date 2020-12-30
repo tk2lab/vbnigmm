@@ -28,12 +28,6 @@ def _check_concentration(prior_type, l0, r0):
     return l0, r0
 
 
-def check_covariance(cov_reliability, cov_scale, cov):
-    s0 = (cov.shape[0] - 1) + cov_reliability
-    t0 = cov * cov_scale ** 2 * s0
-    return s0, t0
-
-
 def check_normality(prior_type, mean, reliability):
     if prior_type == 'invgauss':
         f0 = reliability / mean
@@ -48,18 +42,21 @@ def check_normality(prior_type, mean, reliability):
     return f0, g0, h0
 
 
+def check_covariance(cov_reliability, cov_scale, cov):
+    s0 = (cov.shape[0] - 1) + cov_reliability
+    t0 = cov * cov_scale ** 2 * s0
+    return s0, t0
+
+
+def check_scale(cov, mean, bias):
+    u0 = (cov / mean) ** 2
+    v0 = 1 / bias ** 2
+    return u0, v0
+
+
 def check_bias(mean, bias):
     if bias is None:
         bias = np.zeros_like(mean)
     elif bias.ndim != 1:
         raise ValueError('bias must be 1d')
     return bias
-
-
-def check_scale(mean_scale, cov_scale, bias_scale, mean_bias_corr):
-    corrinv = (1 - mean_bias_corr ** 2)
-    covmean = cov_scale / mean_scale
-    u0 = covmean ** 2 / corrinv
-    w0 = covmean * mean_bias_corr / bias_scale / corrinv
-    v0 = 1 / bias_scale ** 2 / corrinv
-    return u0, v0, w0

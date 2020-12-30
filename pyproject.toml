@@ -15,6 +15,8 @@ scipy = "^1.5"
 scikit-learn = "^0.24"
 tqdm = "^4.55"
 tensorflow = "^2.4"
+tensorflow-probability = "^0.12.1"
+tensorflow_probability = "^0.12.1"
 
 [tool.poetry.dev-dependencies]
 

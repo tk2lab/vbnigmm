@@ -110,8 +110,8 @@ class MultiplyMatrix(Matrix):
 
 def mul_matrix(a, x):
     x = wrap_matrix(x)
-    if tk.all(a == 0):
-        return WrapMatrix(zeros_like(x.mean))
+    #if tk.all(a == 0):
+    #    return WrapMatrix(zeros_like(x.mean))
     if isinstance(x, WrapMatrix):
         return WrapMatrix(a * x.x)
     if isinstance(x, MultiplyMatrix):

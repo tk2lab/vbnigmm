@@ -23,13 +23,13 @@ class Vector(Base):
         raise NotImplementedError()
 
     def __add__(self, other):
-        return affine_vector(1, self, other)
+        return affine_vector(1., self, other)
 
     def __sub__(self, other):
-        return affine_vector(1, self, -other)
+        return affine_vector(1., self, -other)
 
     def __mul__(self, other):
-        return affine_vector(other, self, 0)
+        return affine_vector(other, self, 0.)
 
 
 def precision(self, other):
@@ -94,8 +94,8 @@ class AffineVector(Vector):
 
 def affine_vector(a, x, b):
     x = wrap_vector(x)
-    if tk.all(a == 0):
-        return WrapVector(b)
+    #if tk.all(a == 0):
+    #    return WrapVector(b)
     if isinstance(x, WrapVector):
         return WrapVector(a * x.x + b)
     if isinstance(x, AffineVector):

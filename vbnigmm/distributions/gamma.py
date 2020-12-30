@@ -11,6 +11,10 @@ class Gamma(Dist, Scalar):
         self.beta = tk.as_array(beta)
 
     @property
+    def mode(self):
+        return (self.a - 1) / self.beta
+
+    @property
     def mean(self):
         return self.alpha / self.beta
 
@@ -22,10 +26,13 @@ class Gamma(Dist, Scalar):
     def mean_log(self):
         return tk.digamma(self.alpha) - tk.log(self.beta)
 
+    @property
+    def log_const(self):
+        return self.alpha * tk.log(self.beta) - tk.lgamma(self.alpha)
+
     def log_pdf(self, x):
-        g, h = self.alpha, self.beta
         x = wrap_scalar(x)
         return (
-            g * tk.log(h) - tk.lgamma(g)
-            + (g - 1) * x.mean_log - h * x.mean
+            self.log_const
+            + (self.alpha - 1) * x.mean_log - self.beta * x.mean
         )

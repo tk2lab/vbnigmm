@@ -5,52 +5,58 @@ from .gamma import Gamma
 from ..math.scalar import Scalar, wrap_scalar
 
 
-def InverseGauss(a, b, c=-1 / 2):
-    if tk.all(b == 0):
-        return Gamma(c, a / 2)
-    if tk.all(tk.fabs(c - tk.floor(c) - 0.5) < 1e-6):
-        return _InverseGaussHalfInt(a, b, c)
-    else:
-        return _InverseGauss(a, b, c)
+class InverseGauss(Dist, Scalar):
 
-
-class _InverseGauss(Dist, Scalar):
-
-    def __init__(self, a, b, c):
+    def __init__(self, a, b, c=-1 / 2):
         self.a = tk.as_array(a)
         self.b = tk.as_array(b)
         self.c = tk.as_array(c)
+        self.gamma = Gamma(c, a / 2)
         
     @property
     def mode(self):
         a, b, c = self.a, self.b, self.c
-        return ((c - 1) + tk.sqrt(tk.pow(c - 1, 2) + a * b)) / a
+        v0 = self.gamma.mode
+        v1 = ((c - 1) + tk.sqrt(tk.pow(c - 1, 2) + a * b)) / a
+        return tk.where(b == 0, v0, v1)
 
     @property
     def mean(self):
-        return self._kratio * self._omega
+        v0 = self.gamma.mean
+        v1 = self._kv_ratio * self._omega
+        return tk.where(self.b == 0, v0, v1)
     
     @property
     def mean_inv(self):
-        return self._kratio / self._omega - 2 * self.c / self.b
+        v0 = self.gamma.mean_inv
+        v1 = self._kv_ratio / self._omega - 2 * self.c / self.b
+        return tk.where(self.b == 0, v0, v1)
 
     @property
     def mean_log(self):
-        return self._klndv + tk.log(self._omega)
+        v0 = self.gamma.mean_log
+        v1 = tk.log(self._omega) + tk.dv_log_kv(self.c, self._mu)
+        return tk.where(self.b == 0, v0, v1)
 
     @property
     def log_const(self):
-        return (
-            self._mu - log2 - self.c * tk.log(self._omega) - tk.log(self._kve)
+        v0 = self.gamma.log_const
+        v1 = (
+            - tk.log2
+            - self.c * tk.log(self._omega)
+            - tk.log_kv(self.c, self._mu)
         )
+        return tk.where(self.b == 0, v0, v1)
 
     def log_pdf(self, x):
+        v0 = self.gamma.log_pdf(x)
         x = wrap_scalar(x)
-        return (
+        v1 = (
             + self.log_const
             + (self.c - 1) * x.mean_log
             - (self.a * x.mean + self.b * x.mean_inv) / 2
         )
+        return tk.where(self.b == 0, v0, v1)
 
     @property
     def _omega(self):
@@ -61,22 +67,5 @@ class _InverseGauss(Dist, Scalar):
         return tk.sqrt(self.a * self.b)
 
     @property
-    def _kve(self):
-        return tk.kve(self.c, self._mu)
-
-    @property
-    def _kratio(self):
-        return tk.kve(self.c + 1, self._mu) / self._kve
-
-    @property
-    def _klndv(self):
-        small = 1e-7
-        kvdv = (tk.kve(self.c + small, self._mu) - self._kve) / small
-        return kvdv / self._kve
-
-
-class _InverseGaussHalfInt(_InverseGauss):
-
-    @property
-    def _kratio(self):
-        return tk.khratio(self.c, self._mu)
+    def _kv_ratio(self):
+        return tk.kv_ratio_h(self.c, self._mu)
