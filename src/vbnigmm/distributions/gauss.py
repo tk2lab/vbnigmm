@@ -1,9 +1,8 @@
-import numpy as np
+import vbnigmm.math.base as tk
 
 from .dist import Dist
-from ..linbase.vector import Vector, wrap_vector, precision
-from ..linbase.matrix import Matrix, wrap_matrix
-from ..math import log2pi
+from ..math.vector import Vector, wrap_vector, precision
+from ..math.matrix import Matrix, wrap_matrix
 
 
 class Gauss(Dist, Vector):
@@ -27,9 +26,9 @@ class Gauss(Dist, Vector):
     def log_pdf(self, x):
         x = wrap_vector(x)
         return (
-            - (self.dim / 2) * log2pi + (1 / 2) * self.tau.mean_log_det
+            (self.dim / 2) * tk.log2pi + (1 / 2) * self.tau.mean_log_det
             - (1 / 2) * (
-                + self.tau.trace_dot_outer(x.mean - self.mu.mean)
+                self.tau.trace_dot_outer(x.mean - self.mu.mean)
                 + self.tau.trace_dot_inv(x.precision)
                 + self.tau.trace_dot_inv(self.mu.precision)
                 - 2 * self.tau.trace_dot_inv(precision(x, self.mu))

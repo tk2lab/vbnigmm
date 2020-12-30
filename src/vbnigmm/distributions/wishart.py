@@ -1,15 +1,14 @@
-import numpy as np
+import vbnigmm.math.base as tk
 
 from .dist import Dist
-from ..linbase.matrix import Matrix, wrap_matrix
-from ..math  import log2, multi_lgamma, multi_digamma, log_det, inv
+from ..math.matrix import Matrix, wrap_matrix
 
 
 class Wishart(Dist, Matrix):
 
     def __init__(self, alpha, beta):
-        self.alpha = np.asarray(alpha)
-        self.beta = np.asarray(beta)
+        self.alpha = tk.as_array(alpha, dtype=tk.float32)
+        self.beta = tk.as_array(beta, dtype=tk.float32)
 
     @property
     def dim(self):
@@ -23,22 +22,21 @@ class Wishart(Dist, Matrix):
     @property
     def mean_inv(self):
         a, b, d = self.alpha, self.beta, self.dim
-        return inv(b) / (a - d - 1)[..., None, None]
+        return tk.inv(b) / (a - d - 1)[..., None, None]
 
     @property
     def mean_log_det(self):
         a, b, d = self.alpha, self.beta, self.dim
         return (
-            + multi_digamma(a / 2, d)
-            + d * log2 + log_det(b)
+            tk.multi_digamma(a / 2, d) + d * tk.log2 + tk.log_det(b)
         )
 
     def log_pdf(self, x):
         a, b, d = self.alpha, self.beta, self.dim
         x = wrap_matrix(x)
         return (
-            - multi_lgamma(a / 2, d)
-            - (a / 2) * (d * log2 + log_det(b))
+            - tk.multi_lgamma(a / 2, d)
+            - (a / 2) * (d * tk.log2 + tk.log_det(b))
             + ((a - d - 1) / 2) * x.mean_log_det
-            - (1 / 2) * (x.mean * inv(b)).sum(axis=(-2, -1))
+            - (1 / 2) * tk.sum(x.mean * tk.inv(b), axis=(-2, -1))
         )

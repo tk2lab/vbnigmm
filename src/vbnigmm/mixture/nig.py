@@ -1,4 +1,4 @@
-import numpy as np
+import vbnigmm.math.base as tk
 
 from .check import check_data
 from .check import check_concentration
@@ -12,8 +12,7 @@ from ..distributions.wishart import Wishart
 from ..distributions.invgauss import InverseGauss
 from ..distributions.gauss import Gauss
 from ..distributions.dist import Dist
-from ..linbase.vector import precision
-from ..math import log2pi, inv
+from ..math.vector import precision
 
 
 class NormalInverseGaussMixtureParameters(Dist):
@@ -63,8 +62,8 @@ class NormalInverseGaussMixture(Mixture):
         d = x.shape[-1]
         sz = (
             + q.alpha.mean_log
-            - (1 / 2) * log2pi + (1 / 2) * q.beta.mean_log
-            - (d / 2) * log2pi + (1 / 2) * q.tau.mean_log_det
+            - (1 / 2) * tk.log2pi + (1 / 2) * q.beta.mean_log
+            - (d / 2) * tk.log2pi + (1 / 2) * q.tau.mean_log_det
             + q.beta.mean
             - q.tau.trace_dot_inv(precision(q.xi, q.mu))
             + q.tau.trace_dot_outer(q.xi.mean, x - q.mu.mean)
@@ -92,7 +91,7 @@ class NormalInverseGaussMixture(Mixture):
 
     def start(self, x, y=None):
         z = super().start(x, y)
-        return np.tile(z, (3, 1, 1))
+        return tk.tile(z, (3, 1, 1))
 
     def estep(self, x, q):
         y, sz = self._log_pdf(x[..., None, :], q)
@@ -101,7 +100,7 @@ class NormalInverseGaussMixture(Mixture):
         ym = z * y.mean_inv
         yz = z
         yp = z * y.mean
-        return np.stack((ym, yz, yp)), ll
+        return tk.stack((ym, yz, yp)), ll
 
     def mstep(self, x, z):
         ym, yz, yp = z
@@ -110,13 +109,13 @@ class NormalInverseGaussMixture(Mixture):
         Yp = yp.sum(axis=0)
         Xz = x.T @ yz
         Xm = x.T @ ym
-        X2 = np.tensordot(x, ym[:, None, :] * x[:, :, None], (0, 0))
+        X2 = tk.tensordot(x, ym[:, None, :] * x[:, :, None], (0, 0))
         
         l0, r0, f0, g0, h0, s0, t0, u0, v0, w0, m0, n0 = self.prior.params
         l1 = l0 + Yz[:-1]
-        r1 = r0 + np.cumsum(Yz[:0:-1])[::-1]
+        r1 = r0 + tk.cumsum(Yz[:0:-1])[::-1]
         f1 = f0 + Yp + Ym - 2 * Yz
-        g1 = np.full_like(f1, g0)
+        g1 = tk.full_like(f1, g0)
         h1 = h0 + Yz / 2
         u1 = u0 + Ym
         v1 = v0 + Yp

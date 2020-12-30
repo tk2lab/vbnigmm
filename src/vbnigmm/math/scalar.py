@@ -1,7 +1,6 @@
-import numpy as np
+import vbnigmm.math.base as tk
 
 from .base import Base
-from ..math import log
 
 
 class Scalar(Base):
@@ -26,7 +25,7 @@ class Scalar(Base):
 class WrapScalar(Scalar):
 
     def __init__(self, x):
-        self.x = np.asarray(x)
+        self.x = tk.as_array(x)
 
     @property
     def dim(self):
@@ -42,7 +41,7 @@ class WrapScalar(Scalar):
 
     @property
     def mean_log(self):
-        return log(self.x)
+        return tk.log(self.x)
 
 
 def wrap_scalar(x):

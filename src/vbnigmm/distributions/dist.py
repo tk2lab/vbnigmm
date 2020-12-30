@@ -1,12 +1,10 @@
-import numpy as np
-
-from ..math import exp
+import vbnigmm.math.base as tk
 
 
 class Dist(object):
 
     def pdf(self, x):
-        return exp(self.log_pdf(x))
+        return tk.exp(self.log_pdf(x))
 
     def cross_entropy(self, other):
         return -other.log_pdf(self)

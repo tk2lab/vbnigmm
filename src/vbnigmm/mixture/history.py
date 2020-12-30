@@ -1,6 +1,6 @@
 from tqdm import tqdm
 
-from ..math import inf
+from ..math.base import inf
 
 
 class History(tqdm):

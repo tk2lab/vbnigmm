@@ -1,15 +1,14 @@
-import numpy as np
+import vbnigmm.math.base as tk
 
 from .dist import Dist
-from ..linbase.scalar import Scalar, wrap_scalar
-from ..math import log, lgamma, digamma
+from ..math.scalar import Scalar, wrap_scalar
 
 
 class Gamma(Dist, Scalar):
 
     def __init__(self, alpha, beta):
-        self.alpha = np.asarray(alpha)
-        self.beta = np.asarray(beta)
+        self.alpha = tk.as_array(alpha)
+        self.beta = tk.as_array(beta)
 
     @property
     def mean(self):
@@ -21,9 +20,12 @@ class Gamma(Dist, Scalar):
 
     @property
     def mean_log(self):
-        return digamma(self.alpha) - log(self.beta)
+        return tk.digamma(self.alpha) - tk.log(self.beta)
 
     def log_pdf(self, x):
         g, h = self.alpha, self.beta
         x = wrap_scalar(x)
-        return g * log(h) - lgamma(g) + (g - 1) * x.mean_log - h * x.mean
+        return (
+            g * tk.log(h) - tk.lgamma(g)
+            + (g - 1) * x.mean_log - h * x.mean
+        )

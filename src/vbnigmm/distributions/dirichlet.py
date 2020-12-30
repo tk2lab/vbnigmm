@@ -1,18 +1,17 @@
-import numpy as np
+import vbnigmm.math.base as tk
 
 from .dist import Dist
-from ..linbase.vector import Vector, wrap_vector
-from ..math import lgamma, digamma
+from ..math.vector import Vector, wrap_vector
 
 
 class Dirichlet(Dist, Vector):
 
     def __init__(self, alpha):
-        self.alpha = np.asarray(alpha)
+        self.alpha = tk.as_array(alpha)
 
     @property
     def sum(self):
-        return self.alpha.sum(axis=-1)
+        return tk.sum(self.alpha, axis=-1)
 
     @property
     def mean(self):
@@ -20,12 +19,12 @@ class Dirichlet(Dist, Vector):
 
     @property
     def mean_log(self):
-        return digamma(self.alpha) - digamma(self.sum)[..., None]
+        return tk.digamma(self.alpha) - tk.digamma(self.sum)[..., None]
 
     def log_pdf(self, x):
         x = wrap_vector(x)
         return (
-            + lgamma(self.sum)
-            - lgamma(self.alpha).sum(axis=-1)
-            + ((self.alpha - 1) * x.mean_log).sum(axis=-1)
+            tk.lgamma(self.sum)
+            - tk.sum(tk.lgamma(self.alpha), axis=-1)
+            + tk.sum((self.alpha - 1) * x.mean_log, axis=-1)
         )

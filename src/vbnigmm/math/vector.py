@@ -1,8 +1,7 @@
-import numpy as np
+import vbnigmm.math.base as tk
 
 from .base import Base
 from .matrix import InfMatrix, mul_matrix
-from ..math import fabs, log
 
 
 class Vector(Base):
@@ -48,7 +47,7 @@ def precision(self, other):
 class WrapVector(Vector):
 
     def __init__(self, x):
-        self.x = np.asarray(x)
+        self.x = tk.as_array(x)
 
     @property
     def dim(self):
@@ -60,7 +59,7 @@ class WrapVector(Vector):
 
     @property
     def mean_log(self):
-        return log(self.x)
+        return tk.log(self.x)
 
     @property
     def precision(self):
@@ -76,8 +75,8 @@ def wrap_vector(x):
 class AffineVector(Vector):
 
     def __init__(self, a, x, b):
-        self.a = np.asarray(a)
-        self.b = np.asarray(b)
+        self.a = tk.as_array(a)
+        self.b = tk.as_array(b)
         self.x = x
 
     @property
@@ -95,7 +94,7 @@ class AffineVector(Vector):
 
 def affine_vector(a, x, b):
     x = wrap_vector(x)
-    if np.all(a == 0):
+    if tk.all(a == 0):
         return WrapVector(b)
     if isinstance(x, WrapVector):
         return WrapVector(a * x.x + b)

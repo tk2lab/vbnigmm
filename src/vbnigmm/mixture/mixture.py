@@ -1,8 +1,8 @@
 import numpy as np
+import vbnigmm.math.base as tk
 from sklearn.cluster import KMeans
 
 from .history import History
-from ..math import exp, softmax
 
 
 class Mixture(object):
@@ -28,24 +28,24 @@ class Mixture(object):
             size = z.shape[-1]
             q = self.mstep(x, z)
             z, ll = self.estep(x, q)
-            kl = q.kl(self.prior).sum()
+            kl = tk.sum(q.kl(self.prior))
             lb = (ll - kl) / num
             # test converge
             if history.append(size, lb):
                 break
             # sort and remove
-            zsum = z[0].sum(axis=0)
-            idx = np.argsort(zsum)[::-1]
-            z = z[..., idx]
-            z = z[..., zsum > 2]
+            zsum = tk.sum(z[0], axis=0)
+            idx = tk.argsort(zsum)[::-1]
+            z = tk.gather(z, idx, axis=-1)
+            z = tk.mask(z, zsum > 2, axis=2)
         self.history = dict(lb=history.lb, size=history.size)
         self.posterior = q
 
     def predict(self, x, q=None):
-        return np.argmax(self.predict_proba(x, q), axis=-1)
+        return tk.argmax(self.predict_proba(x, q), axis=-1)
 
     def predict_proba(self, x, q=None):
-        return softmax(self.log_pdf(x[..., None, :], q), axis=-1)
+        return tk.softmax(self.log_pdf(x[..., None, :], q), axis=-1)
 
 
     def start(self, x, y=None):
@@ -56,7 +56,7 @@ class Mixture(object):
             )[self.init_e]
             y = get_init(x)
         u, label = np.unique(y, return_inverse=True)
-        return np.eye(u.size)[label][None, :]
+        return tk.gather(tk.eye(u.size), label)[None, :]
 
     def _init_label_random(self, x):
         n_components = int((x.shape[0] + self.init_n - 1) / self.init_n)
@@ -68,9 +68,9 @@ class Mixture(object):
         return kmeans.fit(x).labels_
 
     def eval(self, rho):
-        max_rho = rho.max(axis=-1)
-        r = exp(rho - max_rho[:, None])
-        sum_r = r.sum(axis=-1)
-        ll = np.log(sum_r).sum() + max_rho.sum()
+        max_rho = tk.max(rho, axis=-1)
+        r = tk.exp(rho - max_rho[:, None])
+        sum_r = tk.sum(r, axis=-1)
+        ll = tk.sum(tk.log(sum_r)) + tk.sum(max_rho)
         z = r / sum_r[:, None]
         return z, ll
