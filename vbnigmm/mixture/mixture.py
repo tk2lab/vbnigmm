@@ -1,115 +1,80 @@
-import numpy as np
 import tensorflow as tf
-import vbnigmm.math.base as tk
 from sklearn.cluster import KMeans
 
-from .history import History
+import vbnigmm.math.base as tk
+from .utils import LogLikelihood, Size
 
 
 class Mixture(tf.keras.Model):
 
-    def __init__(self, init_n=20, init_e='kmeans', init_r=None,
-                 tol=1e-5, max_iter=1000, **prior_config):
+    def __init__(self, init_n=20, init_e='kmeans', **args):
         super().__init__()
-        if (init_r is None) or isinstance(init_r, int):
-            init_r = np.random.RandomState(init_r)
         self.init_n = init_n
         self.init_e = init_e
-        self.init_r = init_r
-        self.tol = tol
-        self.max_iter = max_iter
-        self.prior_config = prior_config
+        self.prior_config = args
 
-    def fit(self, x, y=None, epochs=10, steps_per_epoch=100):
-        self.prior = self.build_prior(x, **self.prior_config)
-        num = tf.shape(x)[0]
-        dim = tf.shape(x)[1]
-        self.max_size = int((num + self.init_n - 1) / self.init_n)
-        z = self.start(x, y)
+    def fit(self, x, y=None, seed=None, steps_per_epoch=100, **kwargs):
+        if seed is not None:
+            tf.random.set_seed(seed)
+
+        self.prior = self.Parameters.create_prior(x, **self.prior_config)
+        z = self.init_expect(x, y)
+
+        x = tk.as_array(x, self.dtype)
         q = self.mstep(x, z)
+        self._params = q.build_weights(self)
+        self.add_loss(self.kl)
 
-        self._size = self.add_weight('size', (), tf.int32)
-        self._params = self.build_posterior(self.max_size, dim)
-        self.assign_posterior(q)
+        self.compile(loss=LogLikelihood(), metrics=[Size()])
+        data = tf.data.Dataset.from_tensors(x).repeat(steps_per_epoch)
+        super().fit(data, **kwargs)
 
-        self.compile()
-        x = tf.data.Dataset.from_tensors(x).repeat(steps_per_epoch)
-        super().fit(x, epochs=epochs)
+    def predict(self, x):
+        return tk.argmax(self.predict_proba(x), axis=-1)
+
+    def predict_proba(self, x):
+        return tk.softmax(super().predict(x)[0], axis=-1)
+
 
     @property
     def posterior(self):
-        params = [
-            p[:self.var_shape[t](self._size, None)[0]]
-            for t, p in zip(self.var_types, self._params)
-        ]
-        return self.Parameters(*params)
+        s = self._params[0]
+        return self.Parameters(*[
+            dict(c=lambda: p, r=lambda: p[:s - 1], f=lambda: p[:s])[t[0]]()
+            for p, t in zip(self._params[1:], self.Parameters.var_types)
+        ])
 
-    def predict(self, x, q=None):
-        return tk.argmax(self.predict_proba(x, q), axis=-1)
-
-    def predict_proba(self, x, q=None):
-        return tk.softmax(self.log_pdf(x[..., None, :], q), axis=-1)
+    def kl(self):
+        return tk.sum(self.posterior.kl(self.prior))
 
 
-    var_shape = dict(
-        a=lambda size, dim: (size - 1,),
-        s=lambda size, dim: (size,),
-        v=lambda size, dim: (size, dim),
-        m=lambda size, dim: (size, dim, dim),
-    )
-
-    def build_posterior(self, size, dim):
-        return [
-            self.add_weight(n, self.var_shape[t](size, dim))
-            for n, t in zip(self.var_names, self.var_types)
-        ]
-
-    def start(self, x, y=None):
+    def init_label(self, x, y=None):
         if y is None:
-            get_init = dict(
-                random=self._init_label_random,
-                kmeans=self._init_label_kmeans,
-            )[self.init_e]
-            y = get_init(x)
-        u, label = np.unique(y, return_inverse=True)
-        return tk.gather(tk.eye(u.size), label)[None, :]
-
-    def _init_label_random(self, x):
-        return self.init_r.randint(self.max_size, size=x.shape[0])
-
-    def _init_label_kmeans(self, x):
-        kmeans = KMeans(self.max_size, random_state=self.init_r)
-        return kmeans.fit(x).labels_
-
-    def call(self, x):
-        return tk.softmax(self.log_pdf(x[..., None, :]), axis=-1)[None, ...]
+            num, dim = x.shape
+            size = int((num + self.init_n - 1) / self.init_n)
+            y = dict(
+                random=lambda: tf.random.uniform((num,), 0, size, tf.int32),
+                kmeans=lambda: KMeans(size).fit(x).predict(x),
+            )[self.init_e]()
+        u, label = tk.unique(y)
+        return tk.gather(tk.eye(tk.size(u), dtype=tk.float32), label)
 
     def train_step(self, x):
-        z = self(x)
+        dummy = tk.zeros((1,))
+        y = self(x)
+        l, z = self.calc_expect(y)
+        self.compiled_loss(dummy, l, regularization_losses=self.losses)
+
+        z = self.sort_and_remove(z)
         q = self.mstep(x, z)
-        #q = self.q.sort_and_remove()
-        self.assign_posterior(q)
-        return dict(size=q.size)
+        q.assign_weights(self._params)
 
-    def assign_posterior(self, q):
-        self._size.assign(q.size)
-        for d, s in zip(self._params, q.params):
-            d.scatter_update(tf.IndexedSlices(s, tf.range(tk.shape(s)[0])))
+        self.compiled_metrics.update_state(dummy, z[0])
+        return {m.name: m.result() for m in self.metrics}
 
-
-    def ll(self, x, q):
-        return tk.log_sum_exp(self.log_pdf(x[:, None, :], q), axis=-1)
-
-    def kl(self, q):
-        return q.kl(self.prior)
-
-    def _metrix(self, x):
-        num = tf.shape(x)[0]
-        q = self.posterior
-        ll = self.ll(x, q)
-        kl = self.kl(q)
-        lb = (ll - kl) / num
-        self.add_metrix(q.size)
-        self.add_metrix(ll, 'll')
-        self.add_metrix(kl, 'kl')
-        self.add_metrix(lb, 'lb')
+    def sort_and_remove(self, z):
+        zsum = tk.sum(z[0], axis=0)
+        idx = tk.argsort(zsum)[::-1]
+        z = tk.gather(z, idx, axis=2)
+        zsum = tk.gather(zsum, idx)
+        return tk.mask(z, zsum > 2, axis=2)

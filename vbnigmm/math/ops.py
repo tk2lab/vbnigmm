@@ -1,4 +1,5 @@
 import tensorflow as _tf
+import numpy as _np
 
 
 # dtype
@@ -20,6 +21,8 @@ range = _tf.range
 zeros_like = _tf.zeros_like
 ones_like = _tf.ones_like
 eye = _tf.eye
+one_hot = _tf.one_hot
+unique = _tf.unique
 
 # modify 
 mask = _tf.boolean_mask
@@ -28,6 +31,7 @@ stack = _tf.stack
 concat = _tf.concat
 gather = _tf.gather
 argsort = _tf.argsort
+argmax = _tf.argmax
 transpose = _tf.transpose
 
 # reduce
@@ -49,3 +53,5 @@ log_det = _tf.linalg.logdet
 # 
 case = _tf.case
 where = _tf.where
+is_native = lambda x: not _tf.is_tensor(x)
+native_all = _np.all

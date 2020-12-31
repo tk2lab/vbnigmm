@@ -6,37 +6,41 @@ from ..math.matrix import Matrix, wrap_matrix
 
 class Wishart(Dist, Matrix):
 
-    def __init__(self, alpha, beta):
+    def __init__(self, alpha, beta, inv=False):
         self.alpha = tk.as_array(alpha)
-        self.beta = tk.as_array(beta)
+        self.beta = tk.as_array(beta, dtype=self.alpha.dtype)
+        self.inv_beta = tk.inv(self.beta)
+        if inv:
+            self.beta, self.inv_beta = self.inv_beta, self.beta
 
     @property
     def dim(self):
         return self.beta.shape[-1]
 
     @property
+    def d(self):
+        return tk.cast(self.dim, self.alpha.dtype)
+
+    @property
     def mean(self):
-        a, b = self.alpha, self.beta
-        return b * a[..., None, None]
+        return self.beta * self.alpha[..., None, None]
 
     @property
     def mean_inv(self):
-        a, b, d = self.alpha, self.beta, self.dim
-        return tk.inv(b) / (a - d - 1)[..., None, None]
+        return self.inv_beta / (self.alpha - self.d - 1)[..., None, None]
 
     @property
     def mean_log_det(self):
-        a, b, d = self.alpha, self.beta, self.dim
         return (
-            tk.multi_digamma(a / 2, d) + d * tk.log2 + tk.log_det(b)
+            tk.multi_digamma(self.alpha / 2, self.dim)
+            + self.d * tk.log2 + tk.log_det(self.beta)
         )
 
     def log_pdf(self, x):
-        a, b, d = self.alpha, self.beta, self.dim
         x = wrap_matrix(x)
         return (
-            - tk.multi_lgamma(a / 2, d)
-            - (a / 2) * (d * tk.log2 + tk.log_det(b))
-            + ((a - d - 1) / 2) * x.mean_log_det
-            - (1 / 2) * tk.sum(x.mean * tk.inv(b), axis=(-2, -1))
+            - tk.multi_lgamma(self.alpha / 2, self.dim)
+            - (self.alpha / 2) * (self.d * tk.log2 + tk.log_det(self.beta))
+            + ((self.alpha - self.d - 1) / 2) * x.mean_log_det
+            - (1 / 2) * tk.sum(x.mean * self.inv_beta, axis=(-2, -1))
         )

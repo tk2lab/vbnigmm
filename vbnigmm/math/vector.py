@@ -36,9 +36,9 @@ def precision(self, other):
     self = wrap_vector(self)
     other = wrap_vector(other)
     if isinstance(self, AffineVector):
-        return mul_matrix(1 / fabs(self.a), precision(self.x, other))
+        return mul_matrix(1 / tk.abs(self.a), precision(self.x, other))
     if isinstance(other, AffineVector):
-        return mul_matrix(1 / fabs(other.a), precision(self, other.x))
+        return mul_matrix(1 / tk.abs(other.a), precision(self, other.x))
     if self is other:
         return self.precision
     return InfMatrix()

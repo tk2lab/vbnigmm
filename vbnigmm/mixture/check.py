@@ -12,11 +12,11 @@ def check_data(x, mean, cov):
         cov = np.atleast_2d(np.cov(x.T))
     elif cov.ndim != 2:
         raise ValueError('cov must be 2d')
-    return mean, cov
+    return mean.astype(np.float32), cov.astype(np.float32)
 
 
 def check_concentration(alpha, py):
-    return 1, alpha, py
+    return 1.0, alpha, py
 
 
 def _check_concentration(prior_type, l0, r0):
@@ -35,7 +35,7 @@ def check_normality(prior_type, mean, reliability):
         h0 = -1 / 2
     elif prior_type == 'gamma':
         f0 = 2 * reliability / mean
-        g0 = 0
+        g0 = 0.0
         h0 = reliability
     else:
         raise ValueError('normality_prior_type should be invgauss or gamma')
@@ -59,4 +59,4 @@ def check_bias(mean, bias):
         bias = np.zeros_like(mean)
     elif bias.ndim != 1:
         raise ValueError('bias must be 1d')
-    return bias
+    return bias.astype(np.float32)
