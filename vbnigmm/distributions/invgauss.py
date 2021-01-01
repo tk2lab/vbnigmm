@@ -7,18 +7,22 @@ from ..linalg.scalar import Scalar, wrap_scalar
 
 class InverseGauss(Dist, Scalar):
 
-    def __new__(cls, a, b, c=-1 / 2):
+    def __new__(cls, a, b, c=-1 / 2, dtype=None):
         try:
             if tk.native_all(b == 0):
-                return Gamma(c, a / 2)
+                return Gamma(c, a / 2, dtype)
         except Exception:
             pass
         return super().__new__(cls)
 
-    def __init__(self, a, b, c=-1 / 2):
-        self.a = tk.as_array(a)
-        self.b = tk.as_array(b)
+    def __init__(self, a, b, c=-1 / 2, dtype=None):
+        self.a = tk.as_array(a, dtype)
+        self.b = tk.as_array(b, dtype)
         self.c = c
+
+    @property
+    def dtype(self):
+        return self.a.dtype
         
     @property
     def mode(self):
@@ -35,18 +39,20 @@ class InverseGauss(Dist, Scalar):
 
     @property
     def mean_log(self):
-        return tk.log(self._omega) + tk.dv_log_kv(self.c, self._mu)
+        c = tk.as_array(self.c, self.dtype)
+        return tk.log(self._omega) + tk.dv_log_kv(c, self._mu)
 
     @property
     def log_const(self):
+        c = tk.as_array(self.c, self.dtype)
         return (
             - tk.log2
             - self.c * tk.log(self._omega)
-            - tk.log_kv(self.c, self._mu)
+            - tk.log_kv(c, self._mu)
         )
 
     def log_pdf(self, x):
-        x = wrap_scalar(x)
+        x = wrap_scalar(x, self.dtype)
         return (
             self.log_const
             + (self.c - 1) * x.mean_log

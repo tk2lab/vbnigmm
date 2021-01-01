@@ -3,32 +3,13 @@ from .base import Base
 
 
 class Scalar(Base):
-
-    @property
-    def dim(self):
-        raise NotImplementedError()
-
-    @property
-    def mean(self):
-        raise NotImplementedError()
-
-    @property
-    def mean_inv(self):
-        raise NotImplementedError()
-
-    @property
-    def mean_log(self):
-        raise NotImplementedError()
+    pass
 
 
 class WrapScalar(Scalar):
 
-    def __init__(self, x):
-        self.x = tk.as_array(x)
-
-    @property
-    def dim(self):
-        return self.x.shape[-1]
+    def __init__(self, x, dtype=None):
+        self.x = tk.as_array(x, dtype)
 
     @property
     def mean(self):
@@ -43,7 +24,7 @@ class WrapScalar(Scalar):
         return tk.log(self.x)
 
 
-def wrap_scalar(x):
+def wrap_scalar(x, dtype):
     if isinstance(x, Scalar):
         return x
-    return WrapScalar(x)
+    return WrapScalar(x, dtype)

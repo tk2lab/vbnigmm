@@ -6,22 +6,6 @@ from .matrix import InfMatrix, mul_matrix
 
 class Vector(Base):
 
-    @property
-    def dim(self):
-        raise NotImplementedError()
-
-    @property
-    def mean(self):
-        raise NotImplementedError()
-
-    @property
-    def mean_log(self):
-        raise NotImplementedError()
-
-    @property
-    def precision(self):
-        raise NotImplementedError()
-
     def __add__(self, other):
         return affine_vector(1., self, other)
 
@@ -32,9 +16,9 @@ class Vector(Base):
         return affine_vector(other, self, 0.)
 
 
-def precision(self, other):
-    self = wrap_vector(self)
-    other = wrap_vector(other)
+def precision(self, other, dtype=None):
+    self = wrap_vector(self, dtype)
+    other = wrap_vector(other, dtype)
     if isinstance(self, AffineVector):
         return mul_matrix(1 / tk.abs(self.a), precision(self.x, other))
     if isinstance(other, AffineVector):
@@ -46,8 +30,8 @@ def precision(self, other):
 
 class WrapVector(Vector):
 
-    def __init__(self, x):
-        self.x = tk.as_array(x)
+    def __init__(self, x, dtype=None):
+        self.x = tk.as_array(x, dtype)
 
     @property
     def dim(self):
@@ -66,17 +50,17 @@ class WrapVector(Vector):
         return InfMatrix()
 
 
-def wrap_vector(x):
+def wrap_vector(x, dtype=None):
     if isinstance(x, Vector):
         return x
-    return WrapVector(x)
+    return WrapVector(x, dtype)
 
 
 class AffineVector(Vector):
 
     def __init__(self, a, x, b):
-        self.a = tk.as_array(a)
-        self.b = tk.as_array(b)
+        self.a = tk.as_array(a, x.dtype)
+        self.b = tk.as_array(b, x.dtype)
         self.x = x
 
     @property
@@ -93,11 +77,13 @@ class AffineVector(Vector):
 
 
 def affine_vector(a, x, b):
-    x = wrap_vector(x)
-    #if tk.all(a == 0):
-    #    return WrapVector(b)
+    try:
+        if tk.native_all(a == 0):
+            return WrapVector(b, x.dtype)
+    except Exception:
+        pass
     if isinstance(x, WrapVector):
-        return WrapVector(a * x.x + b)
+        return WrapVector(a * x.x + b, x.dtype)
     if isinstance(x, AffineVector):
         return AffineVector(a * x.a, x.x, a * x.b + b)
     return AffineVector(a, x, b)

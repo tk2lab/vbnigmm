@@ -7,9 +7,13 @@ from ..linalg.matrix import Matrix, wrap_matrix
 
 class Gauss(Dist, Vector):
 
-    def __init__(self, mu, tau):
-        self.mu = wrap_vector(mu)
-        self.tau = wrap_matrix(tau)
+    def __init__(self, mu, tau, dtype=None):
+        self.mu = wrap_vector(mu, dtype)
+        self.tau = wrap_matrix(tau, dtype)
+
+    @property
+    def dtype(self):
+        return self.mu.dtype
 
     @property
     def dim(self):
@@ -24,7 +28,7 @@ class Gauss(Dist, Vector):
         return self.tau
 
     def log_pdf(self, x):
-        x = wrap_vector(x)
+        x = wrap_vector(x, self.dtype)
         return (
             (self.dim / 2) * tk.log2pi + (1 / 2) * self.tau.mean_log_det
             - (1 / 2) * (

@@ -26,17 +26,17 @@ class GaussMixtureParameters(MixtureParameters):
         l0, r0, py = check_concentration(concentration, concentration_decay)
         s0, t0 = check_covariance(cov_reliability, cov_scale, cov)
         u0 = (cov_scale / mean_scale) ** 2
-        return cls(l0, r0, s0, u0, m0, t0, py)
+        return cls(l0, r0, s0, u0, m0, t0, py, x.dtype)
 
-    def __init__(self, l, r, s, u, m, t, py=0.0):
+    def __init__(self, l, r, s, u, m, t, py=0.0, dtype=None):
         Params = namedtuple('Params', self.var_names)
         self.params = Params(l, r, s, u, m, t)
         self.size = tk.size(s)
         self.dim = tk.shape(m)[-1]
 
-        self.alpha = DirichletProcess(l, r, py)
-        self.tau = Wishart(s, tk.inv(t))
-        self.mu = Gauss(m, self.tau * u)
+        self.alpha = DirichletProcess(l, r, py, dtype)
+        self.tau = Wishart(s, t, inv=True, dtype=dtype)
+        self.mu = Gauss(m, self.tau * u, dtype)
         self.dists = [self.alpha, self.tau, self.mu]
 
 

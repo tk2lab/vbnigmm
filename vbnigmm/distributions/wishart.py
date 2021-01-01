@@ -6,12 +6,16 @@ from ..linalg.matrix import Matrix, wrap_matrix
 
 class Wishart(Dist, Matrix):
 
-    def __init__(self, alpha, beta, inv=False):
-        self.alpha = tk.as_array(alpha)
-        self.beta = tk.as_array(beta, dtype=self.alpha.dtype)
+    def __init__(self, alpha, beta, inv=False, dtype=None):
+        self.alpha = tk.as_array(alpha, dtype)
+        self.beta = tk.as_array(beta, dtype)
         self.inv_beta = tk.inv(self.beta)
         if inv:
             self.beta, self.inv_beta = self.inv_beta, self.beta
+
+    @property
+    def dtype(self):
+        return self.alpha.dtype
 
     @property
     def dim(self):
@@ -37,7 +41,7 @@ class Wishart(Dist, Matrix):
         )
 
     def log_pdf(self, x):
-        x = wrap_matrix(x)
+        x = wrap_matrix(x, self.dtype)
         return (
             - tk.multi_lgamma(self.alpha / 2, self.dim)
             - (self.alpha / 2) * (self.d * tk.log2 + tk.log_det(self.beta))

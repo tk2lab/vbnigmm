@@ -1,5 +1,3 @@
-import tensorflow as tf
-
 from ..backend import current as tk
 from ..distributions.base import Dist
 
@@ -7,13 +5,13 @@ from ..distributions.base import Dist
 dummy = tk.zeros((1,))
 
 
-class LogLikelihood(tf.keras.losses.Loss):
+class LogLikelihood(tk.Loss):
 
     def call(self, y_true, y_pred):
         return -tk.log_sum_exp(y_pred, axis=-1)
 
 
-class Size(tf.keras.metrics.Metric):
+class Size(tk.Metric):
 
     def __init__(self):
         super().__init__()
@@ -32,18 +30,18 @@ class MixtureParameters(Dist):
         return sum([s.log_pdf(d) for s, d in zip(self.dists, x.dists)], 0)
 
 
-def make_one_hot(y):
+def make_one_hot(y, dtype):
     u, label = tk.unique(y)
-    return tk.gather(tk.eye(tk.size(u), dtype=tk.float32), label)
+    return tk.gather(tk.eye(tk.size(u), dtype=dtype), label)
 
 
 def kmeans(x, y):
     def cond(o, y):
-        return ~tf.reduce_all(tf.equal(o, y))
+        return ~tk.all(tk.equal(o, y))
     def update(o, y):
-        z = make_one_hot(y)
+        z = make_one_hot(y, x.dtype)
         mean = (tk.transpose(z) @ x) / tk.sum(z, axis=0)[:, None]
         dist = tk.sum((x[:, None, :] - mean) ** 2, axis=2)
         return y, tk.argmin(dist, axis=1, output_type=y.dtype)
-    _, y = tf.while_loop(cond, update, (tf.zeros_like(y), y))
+    _, y = tk.while_loop(cond, update, (tk.zeros_like(y), y))
     return y

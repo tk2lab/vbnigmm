@@ -6,9 +6,13 @@ from ..linalg.scalar import Scalar, wrap_scalar
 
 class Gamma(Dist, Scalar):
 
-    def __init__(self, alpha, beta):
-        self.alpha = tk.as_array(alpha)
-        self.beta = tk.as_array(beta)
+    def __init__(self, alpha, beta, dtype=None):
+        self.alpha = tk.as_array(alpha, dtype)
+        self.beta = tk.as_array(beta, dtype)
+
+    @property
+    def dtype(self):
+        return self.alpha.dtype
 
     @property
     def mode(self):
@@ -31,7 +35,7 @@ class Gamma(Dist, Scalar):
         return self.alpha * tk.log(self.beta) - tk.lgamma(self.alpha)
 
     def log_pdf(self, x):
-        x = wrap_scalar(x)
+        x = wrap_scalar(x, self.dtype)
         return (
             self.log_const
             + (self.alpha - 1) * x.mean_log - self.beta * x.mean

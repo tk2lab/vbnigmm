@@ -5,22 +5,6 @@ from .base import Base
 
 class Matrix(Base):
 
-    @property
-    def dim(self):
-        raise NotImplementedError()
-
-    @property
-    def mean(self):
-        raise NotImplementedError()
-
-    @property
-    def mean_inv(self):
-        raise NotImplementedError()
-
-    @property
-    def mean_log_det(self):
-        raise NotImplementedError()
-
     def trace_dot_outer(self, a, b=None):
         if b is None:
             b = a
@@ -59,8 +43,8 @@ class InfMatrix(Matrix):
 
 class WrapMatrix(Matrix):
 
-    def __init__(self, x):
-        self.x = tk.as_array(x)
+    def __init__(self, x, dtype=None):
+        self.x = tk.as_array(x, dtype)
 
     @property
     def dim(self):
@@ -79,16 +63,16 @@ class WrapMatrix(Matrix):
         return tk.log_det(self.x)
 
 
-def wrap_matrix(x):
+def wrap_matrix(x, dtype=None):
     if isinstance(x, Matrix):
         return x
-    return WrapMatrix(x)
+    return WrapMatrix(x, dtype)
 
 
 class MultiplyMatrix(Matrix):
 
     def __init__(self, a, x):
-        self.a = tk.as_array(a)
+        self.a = tk.as_array(a, x.dtype)
         self.x = x
 
     @property
@@ -109,11 +93,15 @@ class MultiplyMatrix(Matrix):
 
 
 def mul_matrix(a, x):
-    x = wrap_matrix(x)
-    #if tk.all(a == 0):
-    #    return WrapMatrix(zeros_like(x.mean))
+    try:
+        if tk.natieve_all(a == 0):
+            return WrapMatrix(tk.zeros_like(x.mean), x.dtype)
+    except Exception:
+        pass
+    if isinstance(x, InfMatrix):
+        return x
     if isinstance(x, WrapMatrix):
-        return WrapMatrix(a * x.x)
+        return WrapMatrix(a * x.x, x.dtype)
     if isinstance(x, MultiplyMatrix):
         return MultiplyMatrix(a * x.a, x.x)
     return MultiplyMatrix(a, x)

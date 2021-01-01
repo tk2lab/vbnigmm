@@ -34,17 +34,17 @@ class NormalInverseGaussMixtureParameters(MixtureParameters):
         f0, g0, h0 = check_normality('gamma', normality_mean, normality_dof)
         u0, v0 = check_scale(cov_scale, mean_scale, bias_scale)
         w0 = mean_bias_factor
-        return cls(l0, r0, f0, g0, h0, s0, u0, v0, w0, m0, n0, t0, py)
+        return cls(l0, r0, f0, g0, h0, s0, u0, v0, w0, m0, n0, t0, py, x.dtype)
 
-    def __init__(self, l, r, f, g, h, s, u, v, w, m, n, t, py=0.0):
+    def __init__(self, l, r, f, g, h, s, u, v, w, m, n, t, py=0.0, dtype=None):
         Params = namedtuple('Params', self.var_names)
         self.params = Params(l, r, f, g, h, s, u, v, w, m, n, t)
         self.size = tk.size(f)
         self.dim = tk.shape(t)[-1]
 
-        self.alpha = DirichletProcess(l, r, py)
-        self.beta = InverseGauss(f, g, h)
-        self.tau = Wishart(s, t, inv=True)
-        self.mu = Gauss(m, self.tau * u)
-        self.xi = Gauss(self.mu * w + n, self.tau * v)
+        self.alpha = DirichletProcess(l, r, py, dtype)
+        self.beta = InverseGauss(f, g, h, dtype)
+        self.tau = Wishart(s, t, inv=True, dtype=dtype)
+        self.mu = Gauss(m, self.tau * u, dtype)
+        self.xi = Gauss(self.mu * w + n, self.tau * v, dtype)
         self.dists = [self.alpha, self.beta, self.tau, self.mu, self.xi]

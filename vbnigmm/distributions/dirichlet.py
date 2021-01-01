@@ -6,8 +6,12 @@ from ..linalg.vector import Vector, wrap_vector
 
 class Dirichlet(Dist, Vector):
 
-    def __init__(self, alpha):
-        self.alpha = tk.as_array(alpha)
+    def __init__(self, alpha, dtype=None):
+        self.alpha = tk.as_array(alpha, dtype)
+
+    @property
+    def dtype(self):
+        return self.alpha.dtype
 
     @property
     def sum(self):
@@ -22,7 +26,7 @@ class Dirichlet(Dist, Vector):
         return tk.digamma(self.alpha) - tk.digamma(self.sum)[..., None]
 
     def log_pdf(self, x):
-        x = wrap_vector(x)
+        x = wrap_vector(x, self.dtype)
         return (
             tk.lgamma(self.sum)
             - tk.sum(tk.lgamma(self.alpha), axis=-1)

@@ -1,2 +1,5 @@
 class Base(object):
-    pass
+
+    @property
+    def dtype(self):
+        return self.x.dtype

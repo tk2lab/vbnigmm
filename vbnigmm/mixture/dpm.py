@@ -6,18 +6,23 @@ from ..distributions.dirichlet import Dirichlet
 
 class DirichletProcess(Dist):
 
-    def __init__(self, alpha, beta, gamma=0):
-        self.alpha = tk.as_array(alpha)
-        self.beta = tk.as_array(beta)
+    def __init__(self, alpha, beta, gamma=0, dtype=None):
+        self.alpha = tk.as_array(alpha, dtype)
+        self.beta = tk.as_array(beta, dtype)
         self.gamma = gamma
 
     def base(self, dim=None):
         if dim is None:
             dim = self.dim
-        dtype = self.alpha.dtype
-        alpha = (self.alpha - self.gamma) * tk.ones(dim - 1, dtype=dtype)
-        beta = self.beta + tk.range(1, dim, dtype=dtype) * self.gamma
+        one = tk.ones(dim - 1, dtype=self.dtype)
+        idx = tk.range(1, dim, dtype=self.dtype)
+        alpha = self.alpha - one * self.gamma
+        beta = self.beta + idx * self.gamma
         return Dirichlet(tk.stack((alpha, beta), axis=-1))
+
+    @property
+    def dtype(self):
+        return self.alpha.dtype
 
     @property
     def dim(self):

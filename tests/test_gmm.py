@@ -5,6 +5,7 @@ np.set_printoptions(3, suppress=True)
 from vbnigmm import GaussMixture as Model
 from make_data import make_data
 
+#tf.keras.backend.set_floatx('float64')
 
 #n, d = 10000, 12
 #x = np.random.randn(n, d).astype(np.float32)
