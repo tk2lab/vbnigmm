@@ -53,7 +53,7 @@ class Mixture(tf.keras.Model):
         return tk.argmax(self.predict_proba(x), axis=-1)
 
     def predict_proba(self, x):
-        return tk.softmax(super().predict(x)[0], axis=-1)
+        return super().predict(x)[1][0]
 
 
     def build_posterior(self, size, dim):
@@ -92,8 +92,7 @@ class Mixture(tf.keras.Model):
             return self.init_expect(z)
 
         def _train_step():
-            y = self(x)
-            l, z = self.calc_expect(y)
+            l, z = self(x)
             self.compiled_loss(_dummy, l, regularization_losses=self.losses)
             return _sort_and_remove(z)
 

@@ -45,9 +45,6 @@ class GaussMixture(Mixture):
     Parameters = GaussMixtureParameters
 
     def log_pdf(self, x):
-        return self(x)[0]
-
-    def call(self, x):
         q = self.posterior
         x = x[:, None, :]
         d = float(x.shape[-1])
@@ -59,7 +56,7 @@ class GaussMixture(Mixture):
                 + q.tau.trace_dot_outer(x - q.mu.mean)
             )
         )
-        return p,
+        return p
 
 
     def get_constants(self):
@@ -68,8 +65,9 @@ class GaussMixture(Mixture):
     def init_expect(self, z):
         return z[None, :]
 
-    def calc_expect(self, y):
-        return y[0], (tk.softmax(y[0], axis=-1),)
+    def call(self, x):
+        y = self.log_pdf(x)
+        return y, (tk.softmax(y, axis=-1),)
 
     def mstep(self, x, z):
         z = z[0]
