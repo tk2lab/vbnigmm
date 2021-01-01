@@ -1,10 +1,7 @@
 import tensorflow as tf
 
-import vbnigmm.math.base as tk
-from .utils import LogLikelihood, Size, kmeans, make_one_hot
-
-
-_dummy = tk.zeros((1,))
+from ..backend import current as tk
+from .utils import LogLikelihood, Size, kmeans, make_one_hot, dummy
 
 
 class Mixture(tf.keras.Model):
@@ -94,7 +91,7 @@ class Mixture(tf.keras.Model):
 
         def _train_step():
             l, z = self(x)
-            self.compiled_loss(_dummy, l, regularization_losses=self.losses)
+            self.compiled_loss(dummy, l, regularization_losses=self.losses)
             return _sort_and_remove(z)
 
         def _sort_and_remove(z):
@@ -107,5 +104,5 @@ class Mixture(tf.keras.Model):
         z = tf.cond(self._initialized, _train_step, _initialize)
         q = self.mstep(x, z)
         self.assign_posterior(q)
-        self.compiled_metrics.update_state(_dummy, z)
+        self.compiled_metrics.update_state(dummy, z)
         return {m.name: m.result() for m in self.metrics}

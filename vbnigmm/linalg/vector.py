@@ -1,4 +1,4 @@
-import vbnigmm.math.base as tk
+from ..backend import current as tk
 
 from .base import Base
 from .matrix import InfMatrix, mul_matrix

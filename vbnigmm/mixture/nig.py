@@ -1,10 +1,10 @@
-import vbnigmm.math.base as tk
+from ..backend import current as tk
 
 from .mixture import Mixture
 from .nig_params import NormalInverseGaussMixtureParameters
 
 from ..distributions.invgauss import InverseGauss
-from ..math.vector import precision
+from ..linalg.vector import precision
 
 
 class NormalInverseGaussMixture(Mixture):

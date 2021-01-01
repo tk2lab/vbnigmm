@@ -1,7 +1,7 @@
-import vbnigmm.math.base as tk
+from ..backend import current as tk
 
-from .dist import Dist
-from ..math.scalar import Scalar, wrap_scalar
+from .base import Dist
+from ..linalg.scalar import Scalar, wrap_scalar
 
 
 class Gamma(Dist, Scalar):

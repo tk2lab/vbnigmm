@@ -1,6 +1,6 @@
-import vbnigmm.math.base as tk
+from ..backend import current as tk
 
-from ..distributions.dist import Dist
+from ..distributions.base import Dist
 from ..distributions.dirichlet import Dirichlet
 
 

@@ -1,7 +1,10 @@
 import tensorflow as tf
 
-import vbnigmm.math.base as tk
-from ..distributions.dist import Dist
+from ..backend import current as tk
+from ..distributions.base import Dist
+
+
+dummy = tk.zeros((1,))
 
 
 class LogLikelihood(tf.keras.losses.Loss):

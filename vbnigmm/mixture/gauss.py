@@ -1,6 +1,6 @@
 from collections import namedtuple
 
-import vbnigmm.math.base as tk
+from ..backend import current as tk
 
 from .check import check_data
 from .check import check_concentration

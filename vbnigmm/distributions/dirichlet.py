@@ -1,7 +1,7 @@
-import vbnigmm.math.base as tk
+from ..backend import current as tk
 
-from .dist import Dist
-from ..math.vector import Vector, wrap_vector
+from .base import Dist
+from ..linalg.vector import Vector, wrap_vector
 
 
 class Dirichlet(Dist, Vector):

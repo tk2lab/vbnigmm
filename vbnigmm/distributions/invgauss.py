@@ -1,8 +1,8 @@
-import vbnigmm.math.base as tk
+from ..backend import current as tk
 
-from .dist import Dist
+from .base import Dist
 from .gamma import Gamma
-from ..math.scalar import Scalar, wrap_scalar
+from ..linalg.scalar import Scalar, wrap_scalar
 
 
 class InverseGauss(Dist, Scalar):

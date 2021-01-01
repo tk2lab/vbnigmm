@@ -1,7 +1,7 @@
-import vbnigmm.math.base as tk
+from ..backend import current as tk
 
-from .dist import Dist
-from ..math.matrix import Matrix, wrap_matrix
+from .base import Dist
+from ..linalg.matrix import Matrix, wrap_matrix
 
 
 class Wishart(Dist, Matrix):

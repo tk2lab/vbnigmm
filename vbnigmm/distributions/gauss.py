@@ -1,8 +1,8 @@
-import vbnigmm.math.base as tk
+from ..backend import current as tk
 
-from .dist import Dist
-from ..math.vector import Vector, wrap_vector, precision
-from ..math.matrix import Matrix, wrap_matrix
+from .base import Dist
+from ..linalg.vector import Vector, wrap_vector, precision
+from ..linalg.matrix import Matrix, wrap_matrix
 
 
 class Gauss(Dist, Vector):

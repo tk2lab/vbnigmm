@@ -1,4 +1,4 @@
-import vbnigmm.math.base as tk
+from ..backend import current as tk
 
 
 def check_data(x, mean, cov):
