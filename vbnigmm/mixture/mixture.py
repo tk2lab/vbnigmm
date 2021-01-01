@@ -83,12 +83,13 @@ class Mixture(tf.keras.Model):
         def _initialize():
             self._initialized.assign(True)
             if not isinstance(self._y, str):
-                z = make_one_hot(self._y)
+                y = self._y
             else:
                 num, size = x.shape[0], self._max_size 
-                z = make_one_hot(tf.random.uniform((num,), 0, size, tf.int32))
+                y = tf.random.uniform((num,), 0, size, tf.int32)
                 if self._y == 'kmeans':
-                    z = kmeans(x, z)
+                    y = kmeans(x, y)
+            z = make_one_hot(y)
             return self.init_expect(z)
 
         def _train_step():

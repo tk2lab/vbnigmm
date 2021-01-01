@@ -32,6 +32,7 @@ stack = _tf.stack
 concat = _tf.concat
 gather = _tf.gather
 argsort = _tf.argsort
+argmin = _tf.argmin
 argmax = _tf.argmax
 transpose = _tf.transpose
 

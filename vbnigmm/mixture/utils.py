@@ -34,10 +34,13 @@ def make_one_hot(y):
     return tk.gather(tk.eye(tk.size(u), dtype=tk.float32), label)
 
 
-def kmeans(x, z, n=100):
-    one_hot = tk.eye(tk.shape(z)[1])
-    for i in range(n):
-        mean = tk.transpose(z) @ x / tk.sum(z, axis=0)[:, None]
+def kmeans(x, y):
+    def cond(o, y):
+        return ~tf.reduce_all(tf.equal(o, y))
+    def update(o, y):
+        z = make_one_hot(y)
+        mean = (tk.transpose(z) @ x) / tk.sum(z, axis=0)[:, None]
         dist = tk.sum((x[:, None, :] - mean) ** 2, axis=2)
-        z = tf.gather(one_hot, tk.argmax(dist, axis=1))
-    return z
+        return y, tk.argmin(dist, axis=1, output_type=y.dtype)
+    _, y = tf.while_loop(cond, update, (tf.zeros_like(y), y))
+    return y
