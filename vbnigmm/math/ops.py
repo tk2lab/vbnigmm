@@ -1,4 +1,5 @@
 import tensorflow as _tf
+import tensorflow_probability as _tfp
 import numpy as _np
 
 
@@ -47,6 +48,7 @@ log_sum_exp = _tf.math.reduce_logsumexp
 
 # linalg
 tensordot = _tf.tensordot
+cov = _tfp.stats.covariance
 inv = _tf.linalg.inv
 log_det = _tf.linalg.logdet
 

@@ -28,27 +28,16 @@ class MixtureParameters(Dist):
     def log_pdf(self, x):
         return sum([s.log_pdf(d) for s, d in zip(self.dists, x.dists)], 0)
 
-    def build_weights(self, target):
-        def create(n, t, v):
-            if t[0] == 'c':
-                return v
-            shape = dict(r=(size - 1,), f=(size,))[t[0]]
-            shape = shape + dict(s=(), v=(dim,), m=(dim, dim))[t[1]]
-            return target.add_weight(
-                n, shape, initializer=tf.keras.initializers.Constant(v),
-            )
-        size, dim = self.size, self.dim
-        _size = target.add_weight(
-                'size', (), tk.int32, tf.keras.initializers.Constant(size),
-            )
-        return [_size] + [
-            create(n, t, v)
-            for n, t, v in zip(self.var_names, self.var_types, self.params)
-        ]
 
-    def assign_weights(self, params):
-        params[0].assign(self.size)
-        for dst, src, t in zip(params[1:], self.params, self.var_types):
-            if t[0] != 'c':
-                update = tf.IndexedSlices(src, tk.range(tk.shape(src)[0]))
-                dst.scatter_update(update)
+def make_one_hot(y):
+    u, label = tk.unique(y)
+    return tk.gather(tk.eye(tk.size(u), dtype=tk.float32), label)
+
+
+def kmeans(x, z, n=100):
+    one_hot = tk.eye(tk.shape(z)[1])
+    for i in range(n):
+        mean = tk.transpose(z) @ x / tk.sum(z, axis=0)[:, None]
+        dist = tk.sum((x[:, None, :] - mean) ** 2, axis=2)
+        z = tf.gather(one_hot, tk.argmax(dist, axis=1))
+    return z

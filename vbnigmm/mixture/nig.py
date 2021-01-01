@@ -11,7 +11,6 @@ class NormalInverseGaussMixture(Mixture):
 
     Parameters = NormalInverseGaussMixtureParameters
 
-
     def log_pdf_joint(self, x, y):
         sz, sp, sm, c = self(x)
         ydist = InverseGauss(sp, sm, c)
@@ -47,8 +46,10 @@ class NormalInverseGaussMixture(Mixture):
         return sz, sp, sm, - (d + 1) / 2
 
 
-    def init_expect(self, x, y=None):
-        z = self.init_label(x, y)
+    def get_constants(self):
+        return dict(g=self.prior.params.g)
+
+    def init_expect(self, z):
         return tk.tile(z[None, ...], (3, 1, 1))
 
     def calc_expect(self, y):
@@ -59,7 +60,7 @@ class NormalInverseGaussMixture(Mixture):
         yz = z
         yp = z * y.mean
         ym = z * y.mean_inv
-        return l, tk.stack((yz, yp, ym))
+        return l, (yz, yp, ym)
 
     def mstep(self, x, z):
         yz, yp, ym = z[0], z[1], z[2]

@@ -3,7 +3,8 @@ import scipy.stats as st
 
 
 def make_data(d, normality=1.0, asymmetry=0.5, difficulty=0.2,
-              population=[100] * 10, normality_prec=5, difficulty_prec=5):
+              population=[100] * 10, normality_prec=5, difficulty_prec=5, seed=None):
+    np.random.seed(seed)
     difficulty_prec += d
     m = len(population)
 

@@ -1,3 +1,5 @@
+from collections import namedtuple
+
 import vbnigmm.math.base as tk
 
 from .check import check_data
@@ -16,15 +18,11 @@ from ..distributions.gauss import Gauss
 
 class NormalInverseGaussMixtureParameters(MixtureParameters):
 
-    var_names = (
-        'l1', 'r1', 'f1', 'g1', 'h1', 's1', 'u1', 'v1', 'w1', 'm1', 'n1', 't1',
-    )
-    var_types = (
-        'rs', 'rs', 'fs', 'cs', 'fs', 'fs', 'fs', 'fs', 'fs', 'fv', 'fv', 'fm',
-    )
+    var_names = 'l', 'r', 'f', 'g', 'h', 's', 'u', 'v', 'w', 'm', 'n', 't'
+    var_types = 'o', 'o', 's', 's', 's', 's', 's', 's', 's', 'v', 'v', 'm'
 
     @classmethod
-    def create_prior(cls, x, mean=None, cov=None, bias=None,
+    def make_prior(cls, x, mean=None, cov=None, bias=None,
                     concentration=1.0, concentration_decay=0.0,
                     normality_mean=3.0, normality_dof=1.0,
                     cov_scale=0.3, cov_dof=2.0,
@@ -39,7 +37,8 @@ class NormalInverseGaussMixtureParameters(MixtureParameters):
         return cls(l0, r0, f0, g0, h0, s0, u0, v0, w0, m0, n0, t0, py)
 
     def __init__(self, l, r, f, g, h, s, u, v, w, m, n, t, py=0.0):
-        self.params = l, r, f, g, h, s, u, v, w, m, n, t
+        Params = namedtuple('Params', self.var_names)
+        self.params = Params(l, r, f, g, h, s, u, v, w, m, n, t)
         self.size = tk.size(f)
         self.dim = tk.shape(t)[-1]
 

@@ -1,3 +1,5 @@
+from collections import namedtuple
+
 import vbnigmm.math.base as tk
 
 from .check import check_data
@@ -13,21 +15,22 @@ from ..distributions.gauss import Gauss
 
 class GaussMixtureParameters(MixtureParameters):
 
-    var_names = 'l1', 'r1', 's1', 'u1', 'm1', 't1'
-    var_types = 'rs', 'rs', 'fs', 'fs', 'fv', 'fm'
+    var_names = 'l', 'r', 's', 'u', 'm', 't'
+    var_types = 'o', 'o', 's', 's', 'v', 'm'
 
     @classmethod
-    def create_prior(cls, x, mean=None, cov=None,
+    def make_prior(cls, x, mean=None, cov=None,
               concentration=1.0, concentration_decay=0.0,
               mean_scale=1.0, cov_scale=0.3, cov_reliability=2.0):
         m0, cov = check_data(x, mean, cov)
         l0, r0, py = check_concentration(concentration, concentration_decay)
         s0, t0 = check_covariance(cov_reliability, cov_scale, cov)
         u0 = (cov_scale / mean_scale) ** 2
-        return GaussMixtureParameters(l0, r0, s0, u0, m0, t0, py)
+        return cls(l0, r0, s0, u0, m0, t0, py)
 
     def __init__(self, l, r, s, u, m, t, py=0.0):
-        self.params = l, r, s, u, m, t
+        Params = namedtuple('Params', self.var_names)
+        self.params = Params(l, r, s, u, m, t)
         self.size = tk.size(s)
         self.dim = tk.shape(m)[-1]
 
@@ -59,12 +62,14 @@ class GaussMixture(Mixture):
         return p,
 
 
-    def init_expect(self, x, y=None):
-        z = self.init_label(x, y)
-        return z[None, ...]
+    def get_constants(self):
+        return dict()
+
+    def init_expect(self, z):
+        return z[None, :]
 
     def calc_expect(self, y):
-        return y[0], tk.softmax(y[0], axis=-1)[None, ...]
+        return y[0], (tk.softmax(y[0], axis=-1),)
 
     def mstep(self, x, z):
         z = z[0]
@@ -78,10 +83,9 @@ class GaussMixture(Mixture):
         u1 = u0 + Y
         m1 = ((u0 * m0)[:, None] + X1) / u1
         s1 = s0 + Y
-        t1 = (
-            (t0 + u0 * m0[None, :] * m0[:, None])[:, :, None]
-            - u1 * m1[None, :, :] * m1[:, None, :] + X2
-        )
+        tx = t0 + u0 * m0[None, :] * m0[:, None]
+        ty = X2 - u1 * m1[None, :, :] * m1[:, None, :]
+        t1 = tx[:, :, None] + ty
         m1 = tk.transpose(m1)
         t1 = tk.transpose(t1, (2, 0, 1))
         return self.Parameters(l1, r1, s1, u1, m1, t1)
