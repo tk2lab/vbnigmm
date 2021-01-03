@@ -25,7 +25,7 @@ class Dirichlet(Dist, Vector):
     def mean_log(self):
         return tk.digamma(self.alpha) - tk.digamma(self.sum)[..., None]
 
-    def log_pdf(self, x):
+    def log_pdf(self, x, condition=None):
         x = wrap_vector(x, self.dtype)
         return (
             tk.lgamma(self.sum)

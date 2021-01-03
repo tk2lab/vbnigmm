@@ -40,7 +40,7 @@ class Wishart(Dist, Matrix):
             + self.d * tk.log2 + tk.log_det(self.beta)
         )
 
-    def log_pdf(self, x):
+    def log_pdf(self, x, condition=None):
         x = wrap_matrix(x, self.dtype)
         return (
             - tk.multi_lgamma(self.alpha / 2, self.dim)

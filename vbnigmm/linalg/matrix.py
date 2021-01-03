@@ -14,9 +14,9 @@ class Matrix(Base):
     def trace_dot(self, other):
         other = wrap_matrix(other)
         if isinstance(self, MultiplyMatrix):
-            return self.x.trace_dot(other) * self.a
+            return self.x.trace_dot(other) * self.a[:, None, None]
         if isinstance(other, MultiplyMatrix):
-            return self.trace_dot(other.x) * other.a
+            return self.trace_dot(other.x) * other.a[:, None, None]
         if self is other:
             raise NotImplementedError()
         return tk.sum(self.mean * other.mean, axis=(-2, -1))
@@ -90,6 +90,10 @@ class MultiplyMatrix(Matrix):
     @property
     def mean_log_det(self):
         return self.x.dim * tk.log(self.a) + self.x.mean_log_det
+
+    def get(self, replace=None):
+        replace = replace or dict()
+        return MultiplyMatrix(self.a, replace.get(id(self.x), self.x))
 
 
 def mul_matrix(a, x):

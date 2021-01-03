@@ -26,8 +26,13 @@ class Size(tk.Metric):
 
 class MixtureParameters(Dist):
 
-    def log_pdf(self, x):
-        return sum([s.log_pdf(d) for s, d in zip(self.dists, x.dists)], 0)
+    def log_pdf(self, x, condition=None):
+        out = 0
+        for s, d in zip(self.dists, x.dists):
+            s = s.update(condition)
+            x = x.update(condition)
+            out += s.log_pdf(d)
+        return out
 
 
 def make_one_hot(y, dtype):

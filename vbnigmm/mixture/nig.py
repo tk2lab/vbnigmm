@@ -12,13 +12,11 @@ class NormalInverseGaussMixture(Mixture):
     Parameters = NormalInverseGaussMixtureParameters
 
     def log_pdf_joint(self, x, y):
-        sz, sp, sm, c = self._log_pdf(x)
-        ydist = InverseGauss(sp, sm, c)
+        sz, ydist = self._log_pdf(x)
         return sz + ydist.log_pdf(y)
 
     def log_pdf(self, x):
-        sz, sp, sm, c = self._log_pdf(x)
-        ydist = InverseGauss(sp, sm, c)
+        sz, ydist = self._log_pdf(x)
         return sz - ydist.log_const
 
     def _log_pdf(self, x):
@@ -43,18 +41,20 @@ class NormalInverseGaussMixture(Mixture):
             + q.tau.trace_dot_inv(q.mu.precision)
             + q.tau.trace_dot_outer(x - q.mu.mean)
         )
-        return sz, sp, sm, - (d + 1) / 2
+        return sz, InverseGauss(sp, sm, - (d + 1) / 2)
 
 
     def get_constants(self):
         return dict(g=self.prior.params.g)
 
+    def get_conditions(self, q):
+        return dict(tau=q.tau, mu=q.mu)
+
     def init_expect(self, z):
         return tk.tile(z[None, ...], (3, 1, 1))
 
     def call(self, x):
-        sz, sp, sm, c = self._log_pdf(x)
-        y = InverseGauss(sp, sm, c)
+        sz, y = self._log_pdf(x)
         l = sz - y.log_const
         z = tk.softmax(l, axis=-1)
         yz = z
@@ -67,8 +67,8 @@ class NormalInverseGaussMixture(Mixture):
         Ym = tk.sum(ym, axis=0)
         Yz = tk.sum(yz, axis=0)
         Yp = tk.sum(yp, axis=0)
-        Xz = tk.transpose(x) @ yz
         Xm = tk.transpose(x) @ ym
+        Xz = tk.transpose(x) @ yz
         X2 = tk.tensordot(x, ym[:, None, :] * x[:, :, None], (0, 0))
         
         l0, r0, f0, g0, h0, s0, u0, v0, w0, m0, n0, t0 = self.prior.params
@@ -76,15 +76,24 @@ class NormalInverseGaussMixture(Mixture):
         r1 = r0 + tk.cumsum(Yz[:0:-1])[::-1]
         f1 = f0 + Yp + Ym - 2 * Yz
         g1 = g0
-        h1 = h0 + Yz / 2
+        h1 = h0 + Yz
         u1 = u0 + Ym
         v1 = v0 + Yp
-        w1 = (v0 * w0 - Yz) / v1
-        n1 = ((v0 * n0)[:, None] + Xz) / v1
-        m1 = ((u0 * m0 - v0 * w0 * n0)[:, None] + v1 * w1 * n1 + Xm) / u1
+        w1 = w0 - Yz
+        mx = (u0 * m0 - w0 * n0)[..., None] + Xm
+        nx = (v0 * n0 - w0 * m0)[..., None] + Xz
+        det = u1 * v1 - w1 * w1
+        m1 = (v1 * mx + w1 * nx) / det
+        n1 = (w1 * mx + u1 * nx) / det
         s1 = s0 + Yz
-        tx = t0 + u0 * m0 * m0[:, None] + v0 * n0 * n0[:, None]
-        ty = X2 - u1 * m1 * m1[:, None, :] - v1 * n1 * n1[:, None, :]
+        tx = t0 + (
+            u0 * m0 * m0[:, None] + v0 * n0 * n0[:, None]
+            - w0 * m0 * n0[:, None] - w0 * n0 * m0[:, None]
+        )
+        ty = X2 - (
+            u1 * m1 * m1[:, None, :] - v1 * n1 * n1[:, None, :]
+            - w1 * m1 * n1[:, None, :] - w1 * n1 * m1[:, None, :]
+        )
         t1 = tx[:, :, None] + ty
         m1 = tk.transpose(m1)
         n1 = tk.transpose(n1)

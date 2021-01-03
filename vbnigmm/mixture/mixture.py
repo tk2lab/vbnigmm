@@ -10,7 +10,7 @@ class Mixture(tk.Model):
         self.init_e = init_e
         self.prior_config = args
 
-    def fit(self, x, y=None, seed=None, steps_per_epochs=100, **kwargs):
+    def fit(self, x, y=None, seed=None, steps_per_epoch=100, **kwargs):
         num, dim = x.shape
         size = int((num + self.init_n - 1) / self.init_n)
         x = tk.as_array(x, self.dtype)
@@ -22,7 +22,7 @@ class Mixture(tk.Model):
         self.build_posterior(size, dim)
         self.compile(loss=LogLikelihood(), metrics=[Size()])
 
-        data = tk.Dataset.from_tensors(x).repeat(steps_per_epochs)
+        data = tk.Dataset.from_tensors(x).repeat(steps_per_epoch)
         super().fit(data, **kwargs)
 
     @property
@@ -42,7 +42,8 @@ class Mixture(tk.Model):
         return q(*params)
 
     def kl(self):
-        return tk.sum(self.posterior.kl(self.prior))
+        q = self.posterior
+        return tk.sum(q.kl(self.prior, self.get_conditions(q)))
 
     def predict(self, x):
         return tk.argmax(self.predict_proba(x), axis=-1, dtype=tk.int32)

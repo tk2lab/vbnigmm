@@ -20,8 +20,8 @@ class GaussMixtureParameters(MixtureParameters):
 
     @classmethod
     def make_prior(cls, x, mean=None, cov=None,
-              concentration=1.0, concentration_decay=0.0,
-              mean_scale=1.0, cov_scale=0.3, cov_reliability=2.0):
+                   concentration=1.0, concentration_decay=0.0,
+                   mean_scale=1.0, cov_scale=0.3, cov_reliability=2.0):
         m0, cov = check_data(x, mean, cov)
         l0, r0, py = check_concentration(concentration, concentration_decay)
         s0, t0 = check_covariance(cov_reliability, cov_scale, cov)
@@ -36,7 +36,7 @@ class GaussMixtureParameters(MixtureParameters):
 
         self.alpha = DirichletProcess(l, r, py, dtype)
         self.tau = Wishart(s, t, inv=True, dtype=dtype)
-        self.mu = Gauss(m, self.tau * u, dtype)
+        self.mu = Gauss(m, self.tau * u, dtype, condition=dict(tau=self.tau))
         self.dists = [self.alpha, self.tau, self.mu]
 
 
@@ -61,6 +61,9 @@ class GaussMixture(Mixture):
 
     def get_constants(self):
         return dict()
+
+    def get_conditions(self, q):
+        return dict(tau=q.tau)
 
     def init_expect(self, z):
         return z[None, :]

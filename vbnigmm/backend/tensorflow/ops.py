@@ -3,6 +3,8 @@ import tensorflow_probability as _tfp
 import numpy as _np
 
 
+print = _tf.print
+
 # random
 random_seed = _tf.random.set_seed
 random_uniform = _tf.random.uniform

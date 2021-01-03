@@ -32,7 +32,7 @@ class DirichletProcess(Dist):
     def mean(self):
         x = self.base().mean
         m = tk.concat((x[..., 0], [1]), 0)
-        n = tk.concat(([1], cumprod(x[..., 1])), 0)
+        n = tk.concat(([1], tk.cumprod(x[..., 1])), 0)
         return m * n
 
     @property
@@ -42,7 +42,7 @@ class DirichletProcess(Dist):
         logn = tk.concat(([0], tk.cumsum(logx[..., 1])), 0)
         return logm + logn
 
-    def log_pdf(self, x):
+    def log_pdf(self, x, condition=None):
         if isinstance(x, DirichletProcess):
             return tk.sum(self.base(x.dim).log_pdf(x.base()), axis=-1)
         x = x[:-1]

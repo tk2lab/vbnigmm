@@ -16,7 +16,7 @@ class Gamma(Dist, Scalar):
 
     @property
     def mode(self):
-        return (self.a - 1) / self.beta
+        return (self.alpha - 1) / self.beta
 
     @property
     def mean(self):
@@ -34,7 +34,7 @@ class Gamma(Dist, Scalar):
     def log_const(self):
         return self.alpha * tk.log(self.beta) - tk.lgamma(self.alpha)
 
-    def log_pdf(self, x):
+    def log_pdf(self, x, condition=None):
         x = wrap_scalar(x, self.dtype)
         return (
             self.log_const

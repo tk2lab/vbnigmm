@@ -69,11 +69,15 @@ class AffineVector(Vector):
 
     @property
     def mean(self):
-        return self.x.mean * self.a[..., None]
+        return self.x.mean * self.a[..., None] + self.b
 
     @property
     def precision(self):
         return mul_matrix(1 / self.a**2, self.x.precision)
+
+    def get(self, replace=None):
+        replace = replace or dict()
+        return AffineVector(self.a, replace.get(id(self.x), self.x), self.b)
 
 
 def affine_vector(a, x, b):
