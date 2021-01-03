@@ -1,5 +1,5 @@
-from ..backend import current as tk
 from .utils import LogLikelihood, Size, kmeans, make_one_hot, dummy
+from ..backend import current as tk
 
 
 class Mixture(tk.Model):
@@ -10,40 +10,20 @@ class Mixture(tk.Model):
         self.init_e = init_e
         self.prior_config = args
 
-    def fit(self, x, y=None, seed=None, steps_per_epoch=100, **kwargs):
+    def fit(self, x, y=None, steps_per_epoch=100, **kwargs):
+        x = tk.as_array(x, self.dtype)
         num, dim = x.shape
         size = int((num + self.init_n - 1) / self.init_n)
-        x = tk.as_array(x, self.dtype)
-        self._y = self.init_e if y is None else y
-        if seed is not None:
-            tk.random.set_seed(seed)
 
-        self.prior = self.Parameters.make_prior(x, **self.prior_config)
-        self.build_posterior(size, dim)
+        self._prior = self.Parameters.make_prior(x, **self.prior_config)
+        self.Parameters.add_weights(self, size, dim)
+        self.add_loss(self.kl)
         self.compile(loss=LogLikelihood(), metrics=[Size()])
 
         data = tk.Dataset.from_tensors(x).repeat(steps_per_epoch)
+        self._y = self.init_e if y is None else y
+        self._max_size = size
         super().fit(data, **kwargs)
-
-    @property
-    def posterior(self):
-        q = self.Parameters
-        constants = self.get_constants()
-        s = self._params[0]
-        params = []
-        for n, t, p in zip(q.var_names, q.var_types, self._params[1:]):
-            c = constants.get(n, None)
-            if c is not None:
-                params.append(c)
-            elif t == 'o':
-                params.append(p[:s - 1])
-            else:
-                params.append(p[:s])
-        return q(*params, dtype=self.dtype)
-
-    def kl(self):
-        q = self.posterior
-        return tk.sum(q.kl(self.prior, self.get_conditions(q)))
 
     def predict(self, x):
         return tk.argmax(self.predict_proba(x), axis=-1, dtype=tk.int32)
@@ -51,26 +31,22 @@ class Mixture(tk.Model):
     def predict_proba(self, x):
         return super().predict(x)[1][0]
 
+    @property
+    def prior(self):
+        return self._prior
 
-    def build_posterior(self, size, dim):
-        s, d, q = size, dim, self.Parameters
-        shapes = dict(o=(s - 1,), s=(s,), v=(s, d,), m=(s, d, d))
-        constants = self.get_constants()
-        self._initialized = self.add_weight('init', (), tk.bool, 'Zeros')
-        self._max_size = size
-        self._params = []
-        self._params.append(self.add_weight('size', (), tk.int32))
-        for n, t in zip(q.var_names, q.var_types):
-            c = constants.get(n, None)
-            if c is not None:
-                self._params.append(c)
-            else:
-                self._params.append(self.add_weight(n, shapes[t], self.dtype))
-        self.add_loss(self.kl)
+    @property
+    def posterior(self):
+        return self.Parameters.create_from_weights(self)
+
+    def kl(self):
+        q = self.posterior
+        return tk.sum(q.kl(self.prior, self.get_conditions(q)))
+
 
     def assign_posterior(self, q):
-        self._params[0].assign(q.size)
-        for dst, src in zip(self._params[1:], q.params):
+        self._size.assign(q.size)
+        for dst, src in zip(self._params, q.params):
             if hasattr(dst, 'scatter_update'):
                 tk.scatter_update(dst, src)
 
@@ -80,7 +56,7 @@ class Mixture(tk.Model):
             if not isinstance(self._y, str):
                 y = self._y
             else:
-                num, size = x.shape[0], self._max_size 
+                num, size = x.shape[0], self._max_size
                 y = tk.random_uniform((num,), 0, size, tk.int32)
                 if self._y == 'kmeans':
                     y = kmeans(x, y)
@@ -90,9 +66,6 @@ class Mixture(tk.Model):
         def _train_step():
             l, z = self(x)
             self.compiled_loss(dummy, l, regularization_losses=self.losses)
-            return _sort_and_remove(z)
-
-        def _sort_and_remove(z):
             zsum = tk.sum(z[0], axis=0)
             idx = tk.argsort(zsum)[::-1]
             z = tk.gather(z, idx, axis=2)

@@ -24,7 +24,8 @@ class NormalInverseGaussMixtureParameters(MixtureParameters):
     @classmethod
     def make_prior(cls, x, mean=None, cov=None, bias=None,
                    concentration=1.0, concentration_decay=0.0,
-                   normality_type='gamma', normality_mean=3.0, normality_dof=1.0,
+                   normality_type='gamma',
+                   normality_mean=3.0, normality_dof=1.0,
                    cov_scale=0.3, cov_dof=2.0,
                    mean_scale=1.0, bias_scale=0.3, mean_bias_factor=0.0):
         m0, cov = check_data(x, mean, cov)
@@ -45,6 +46,12 @@ class NormalInverseGaussMixtureParameters(MixtureParameters):
         self.alpha = DirichletProcess(l, r, py, dtype)
         self.beta = InverseGauss(f, g, h / 2, dtype)
         self.tau = Wishart(s, t, inv=True, dtype=dtype)
-        self.mu = Gauss(m, self.tau * u, dtype, condition=dict(tau=self.tau))
-        self.xi = Gauss(self.mu * w + n, self.tau * v, dtype, condition=dict(tau=self.tau, mu=self.mu))
+        self.mu = Gauss(
+            m, self.tau * u, dtype,
+            condition=dict(tau=self.tau),
+        )
+        self.xi = Gauss(
+            self.mu * w + n, self.tau * v, dtype,
+            condition=dict(tau=self.tau, mu=self.mu),
+        )
         self.dists = [self.alpha, self.beta, self.tau, self.mu, self.xi]

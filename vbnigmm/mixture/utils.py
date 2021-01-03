@@ -26,6 +26,37 @@ class Size(tk.Metric):
 
 class MixtureParameters(Dist):
 
+    @classmethod
+    def create_from_weights(cls, self):
+        size, params, dtype = self._size, self._params, self.dtype
+        constants = self.get_constants()
+        _params = []
+        for n, t, p in zip(cls.var_names, cls.var_types, params):
+            c = constants.get(n, None)
+            if c is not None:
+                _params.append(c)
+            elif t == 'o':
+                _params.append(p[:size - 1])
+            else:
+                _params.append(p[:size])
+        return cls(*_params, dtype=dtype)
+
+    @classmethod
+    def add_weights(cls, target, size, dim):
+        s, d = size, dim
+        shapes = dict(o=(s - 1,), s=(s,), v=(s, d,), m=(s, d, d))
+        dtype = target.dtype
+        constants = target.get_constants()
+        target._initialized = target.add_weight('init', (), tk.bool, 'Zeros')
+        target._size = target.add_weight('size', (), tk.int32)
+        target._params = []
+        for n, t in zip(cls.var_names, cls.var_types):
+            c = constants.get(n, None)
+            if c is not None:
+                target._params.append(c)
+            else:
+                target._params.append(target.add_weight(n, shapes[t], dtype))
+
     def log_pdf(self, x, condition=None):
         out = 0
         for s, d in zip(self.dists, x.dists):
