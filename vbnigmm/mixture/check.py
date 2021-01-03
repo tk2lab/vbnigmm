@@ -29,11 +29,11 @@ def check_concentration(alpha, py):
 
 def check_normality(prior_type, mean, reliability):
     if prior_type == 'invgauss':
-        f0 = reliability / mean
-        g0 = reliability * mean
-        h0 = -1 / 2
+        f0 = reliability
+        g0 = reliability / mean / mean
+        h0 = -1
     elif prior_type == 'gamma':
-        f0 = 2 * reliability / mean
+        f0 = reliability / mean
         g0 = 0.0
         h0 = reliability
     else:

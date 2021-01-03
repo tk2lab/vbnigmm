@@ -13,10 +13,13 @@ random_uniform = _tf.random.uniform
 bool = _tf.bool
 int32 = _tf.int32
 float32 = _tf.float32
+float64 = _tf.float64
 
 # shape
 size = _tf.size
 shape = _tf.shape
+reshape = _tf.reshape
+broadcast_to = _tf.broadcast_to
 
 # constractor
 as_array = _tf.convert_to_tensor

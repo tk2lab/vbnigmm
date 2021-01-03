@@ -1,8 +1,9 @@
-from ..backend import current as tk
-
 from .base import Dist
 from .gamma import Gamma
 from ..linalg.scalar import Scalar, wrap_scalar
+
+from ..backend import current as tk
+from ..math.bessel import log_kv, dv_log_kv
 
 
 class InverseGauss(Dist, Scalar):
@@ -18,41 +19,46 @@ class InverseGauss(Dist, Scalar):
     def __init__(self, a, b, c=-1 / 2, dtype=None):
         self.a = tk.as_array(a, dtype)
         self.b = tk.as_array(b, dtype)
-        self.c = c
+        self.c = tk.as_array(c, dtype)
 
     @property
     def dtype(self):
         return self.a.dtype
         
-    '''
     @property
     def mode(self):
         a, b, c = self.a, self.b, self.c
         return ((c - 1) + tk.sqrt(tk.pow(c - 1, 2) + a * b)) / a
-    '''
 
     @property
     def mean(self):
-        return self.b * tk.kv_ratio( self.c, self._mu) / self._mu
+        return tk.exp(
+            (1 / 2) * (tk.log(self.b) - tk.log(self.a))
+            + log_kv(self.c + 1, self._mu)
+            - log_kv(self.c, self._mu)
+        )
     
     @property
     def mean_inv(self):
-        return self.a * tk.kv_ratio(-self.c, self._mu) / self._mu
+        return tk.exp(
+            (1 / 2) * (tk.log(self.a) - tk.log(self.b))
+            + log_kv(self.c - 1, self._mu)
+            - log_kv(self.c, self._mu)
+        )
 
-    '''
     @property
     def mean_log(self):
-        c = tk.as_array(self.c, self.dtype)
-        return tk.log(self._omega) + tk.dv_log_kv(c, self._mu)
-    '''
+        return (
+            (1 / 2) * (tk.log(self.b) - tk.log(self.a))
+            + dv_log_kv(self.c, self._mu)
+        )
 
     @property
     def log_const(self):
-        c = tk.as_array(self.c, self.dtype)
         return (
-            (c / 2) * (tk.log(self.a) - tk.log(self.b))
+            (self.c / 2) * (tk.log(self.a) - tk.log(self.b))
             - tk.log2
-            - tk.log_kv(self.c, self._mu)
+            - log_kv(self.c, self._mu)
         )
 
     def log_pdf(self, x, condition=None):
@@ -66,9 +72,3 @@ class InverseGauss(Dist, Scalar):
     @property
     def _mu(self):
         return tk.sqrt(self.a * self.b)
-
-    '''
-    @property
-    def _kv_ratio(self):
-        return tk.kv_ratio(self.c, self._mu)
-    '''

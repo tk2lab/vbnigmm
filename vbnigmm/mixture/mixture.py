@@ -4,7 +4,7 @@ from .utils import LogLikelihood, Size, kmeans, make_one_hot, dummy
 
 class Mixture(tk.Model):
 
-    def __init__(self, init_n=30, init_e='kmeans', **args):
+    def __init__(self, init_n=20, init_e='kmeans', **args):
         super().__init__()
         self.init_n = init_n
         self.init_e = init_e
@@ -39,7 +39,7 @@ class Mixture(tk.Model):
                 params.append(p[:s - 1])
             else:
                 params.append(p[:s])
-        return q(*params)
+        return q(*params, dtype=self.dtype)
 
     def kl(self):
         q = self.posterior

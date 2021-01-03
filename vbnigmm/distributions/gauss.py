@@ -1,4 +1,3 @@
-import tensorflow as tf
 from ..backend import current as tk
 
 from .base import Dist
