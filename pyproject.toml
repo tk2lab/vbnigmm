@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "vbnigmm"
-version = "2.1.0"
+version = "2.2.0"
 description = "Variational Bayes algorithm for normal inverse Gaussian mixture models"
 license = "GPL-3.0-only"
 authors = ["TAKEKAWA Takashi <takekawa@tk2lab.org>"]
@@ -16,7 +16,6 @@ tensorflow = "^2.4"
 tensorflow_probability = "^0.12"
 
 [tool.poetry.dev-dependencies]
-jupyterlab = "^2.2"
 
 [build-system]
 requires = ["poetry>=0.12"]
