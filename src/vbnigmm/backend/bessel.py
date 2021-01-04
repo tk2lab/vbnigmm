@@ -1,4 +1,4 @@
-from ..backend import current as tk
+from . import current as tk
 from .search import search, integrate, where_func
 
 

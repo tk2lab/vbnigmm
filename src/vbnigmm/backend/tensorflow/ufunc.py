@@ -14,6 +14,9 @@ sinh = _tf.math.sinh
 cosh = _tf.math.cosh
 tanh = _tf.math.tanh
 
+lgamma = _tf.math.lgamma
+digamma = _tf.math.digamma
+
 k0_e = _tf.math.special.bessel_k0e
 k1_e = _tf.math.special.bessel_k1e
 kv_e = _tfp.math.bessel_kve

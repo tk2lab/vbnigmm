@@ -1,4 +1,4 @@
-from ..backend import current as tk
+from .. import backend as tk
 
 from .mixture import Mixture
 from .nig_params import NormalInverseGaussMixtureParameters

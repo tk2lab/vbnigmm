@@ -1,9 +1,8 @@
+from .. import backend as tk
+
 from .base import Dist
 from .gamma import Gamma
 from ..linalg.scalar import Scalar, wrap_scalar
-
-from ..backend import current as tk
-from ..math.bessel import log_kv, dv_log_kv
 
 
 class InverseGauss(Dist, Scalar):
@@ -34,23 +33,23 @@ class InverseGauss(Dist, Scalar):
     def mean(self):
         return tk.exp(
             (1 / 2) * (tk.log(self.b) - tk.log(self.a))
-            + log_kv(self.c + 1, self._mu)
-            - log_kv(self.c, self._mu)
+            + tk.log_kv(self.c + 1, self._mu)
+            - tk.log_kv(self.c, self._mu)
         )
     
     @property
     def mean_inv(self):
         return tk.exp(
             (1 / 2) * (tk.log(self.a) - tk.log(self.b))
-            + log_kv(self.c - 1, self._mu)
-            - log_kv(self.c, self._mu)
+            + tk.log_kv(self.c - 1, self._mu)
+            - tk.log_kv(self.c, self._mu)
         )
 
     @property
     def mean_log(self):
         return (
             (1 / 2) * (tk.log(self.b) - tk.log(self.a))
-            + dv_log_kv(self.c, self._mu)
+            + tk.dv_log_kv(self.c, self._mu)
         )
 
     @property
@@ -58,7 +57,7 @@ class InverseGauss(Dist, Scalar):
         return (
             (self.c / 2) * (tk.log(self.a) - tk.log(self.b))
             - tk.log2
-            - log_kv(self.c, self._mu)
+            - tk.log_kv(self.c, self._mu)
         )
 
     def log_pdf(self, x, condition=None):

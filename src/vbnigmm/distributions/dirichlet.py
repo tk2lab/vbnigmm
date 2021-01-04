@@ -1,4 +1,4 @@
-from ..backend import current as tk
+from .. import backend as tk
 
 from .base import Dist
 from ..linalg.vector import Vector, wrap_vector

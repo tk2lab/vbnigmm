@@ -1,6 +1,6 @@
 from collections import namedtuple
 
-from ..backend import current as tk
+from .. import backend as tk
 
 from .check import check_data
 from .check import check_concentration

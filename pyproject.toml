@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "vbnigmm"
-version = "2.2.0"
+version = "2.3.0a"
 description = "Variational Bayes algorithm for normal inverse Gaussian mixture models"
 license = "GPL-3.0-only"
 authors = ["TAKEKAWA Takashi <takekawa@tk2lab.org>"]

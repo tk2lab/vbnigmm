@@ -1,5 +1,6 @@
+from .. import backend as tk
+
 from .utils import LogLikelihood, Size, kmeans, make_one_hot, dummy
-from ..backend import current as tk
 
 
 class Mixture(tk.Model):
