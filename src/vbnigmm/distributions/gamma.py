@@ -1,34 +1,42 @@
-"""Gamma distributions."""
+from .. import backend as tk
 
-__author__ = 'TAKEKAWA Takashi <takekawa@tk2lab.org>'
-__credits__ = 'Copyright 2018, TAKEKAWA Takashi'
-
-
-import numpy as np
-import scipy.special as sp
-
-from .basedist import BaseDist
+from .base import Dist
+from ..linalg.scalar import Scalar, wrap_scalar
 
 
-class Gamma(BaseDist):
+class Gamma(Dist, Scalar):
 
-    def __init__(self, *args):
-        g, h = map(np.asarray, args)
-        self.params = g, h
-        self.dof = g
-        self.mean = g / h
-        self.log_mean = sp.digamma(g) - np.log(h)
-        self.log_const = sp.xlogy(g, h) - sp.gammaln(g)
+    def __init__(self, alpha, beta, dtype=None):
+        self.alpha = tk.as_array(alpha, dtype)
+        self.beta = tk.as_array(beta, dtype)
 
-    def log_pdf(self, x):
-        g, h = self.params
-        return self.log_const + sp.xlogy(g - 1, x) - h * x
+    @property
+    def dtype(self):
+        return self.alpha.dtype
 
-    def cross_entropy(self, *params):
-        g, h = map(np.asarray, params)
-        return -(
-            + sp.xlogy(g, h)
-            - sp.gammaln(g)
-            + (g - 1) * self.log_mean
-            - h * self.mean
+    @property
+    def mode(self):
+        return (self.alpha - 1) / self.beta
+
+    @property
+    def mean(self):
+        return self.alpha / self.beta
+
+    @property
+    def mean_inv(self):
+        return self.beta / (self.alpha - 1)
+
+    @property
+    def mean_log(self):
+        return tk.digamma(self.alpha) - tk.log(self.beta)
+
+    @property
+    def log_const(self):
+        return self.alpha * tk.log(self.beta) - tk.lgamma(self.alpha)
+
+    def log_pdf(self, x, condition=None):
+        x = wrap_scalar(x, self.dtype)
+        return (
+            self.log_const
+            + (self.alpha - 1) * x.mean_log - self.beta * x.mean
         )

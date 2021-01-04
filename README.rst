@@ -3,17 +3,6 @@ vbnigmm
 
 Variational Bayes algorithm for Normal Inverse Gaussian Mixture Models
 
-Demonstration
--------------
-
-The results of the sample simulation data can be 
-checked by the following procedure:
-
-.. code-block:: bash
-
-    poetry run jupyter lab
-    # open example.ipynb in jupyter environment
-
 Installation
 ------------
 
@@ -21,8 +10,7 @@ The package can be build using poetry and installed using pip:
 
 .. code-block:: bash
 
-    poetry build
-    pip install dist/vbnigmm-1.0.0-py3-none-any.whl
+    pip install vbnigmm
 
 Examples
 --------
@@ -32,7 +20,7 @@ you can run the following code:
 
 .. code-block:: python
 
-    from vbnigmm import BaysianNIGMixture as Model
+    from vbnigmm import NormalInverseGaussMixture as Model
 
     # x is numpy.ndarray of 2D
 

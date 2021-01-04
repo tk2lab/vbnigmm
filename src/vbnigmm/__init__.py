@@ -1,14 +1,8 @@
-__author__ = 'TAKEKAWA Takashi <takekawa@tk2lab.org>'
-__credits__ = 'Copyright 2020, TAKEKAWA Takashi'
-
-
-from .gauss_model import BayesianGaussianMixture
-from .fixed_model import BayesianFixedNIGMixture
-from .nig_model import BayesianNIGMixture
+from .mixture.gmm import GaussMixture
+from .mixture.nigmm import NormalInverseGaussMixture
 
 
 __all__ = [
-    'BayesianGaussianMixture',
-    'BayesianFixedNIGMixture',
-    'BayesianNIGMixture',
+    'GaussMixture',
+    'NormalInverseGaussMixture',
 ]

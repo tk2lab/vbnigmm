@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "vbnigmm"
-version = "1.0.0"
+version = "2.3.0"
 description = "Variational Bayes algorithm for normal inverse Gaussian mixture models"
 license = "GPL-3.0-only"
 authors = ["TAKEKAWA Takashi <takekawa@tk2lab.org>"]
@@ -9,17 +9,13 @@ repository = "https://github.com/tk2lab/vbnigmm"
 keywords = ["clustering"]
 
 [tool.poetry.dependencies]
-python = "^3.7 || ^3.8"
-numpy = "^1.18.4"
-scipy = "^1.4.1"
-tqdm = "^4.46.0"
-scikit-learn = "^0.22.2"
+python = "^3.7 || ^3.8 || ^3.9"
+numpy = "^1.19"
+scipy = "^1.5"
+tensorflow = "^2.4"
+tensorflow_probability = "^0.12"
 
 [tool.poetry.dev-dependencies]
-jupyterlab = "^2.2.8"
-matplotlib = "^3.3.1"
-seaborn = "^0.11.0"
-pandas = "^1.0.3"
 
 [build-system]
 requires = ["poetry>=0.12"]

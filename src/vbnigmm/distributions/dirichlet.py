@@ -1,41 +1,34 @@
-"""Dirichlet distributions."""
+from .. import backend as tk
 
-__author__ = 'TAKEKAWA Takashi <takekawa@tk2lab.org>'
-__credits__ = 'Copyright 2018, TAKEKAWA Takashi'
-
-
-import numpy as np
-import scipy.special as sp
-
-from .basedist import BaseDist
-from .dpm import DirichletProcess
+from .base import Dist
+from ..linalg.vector import Vector, wrap_vector
 
 
-def Dirichlet(l, r=None):
-    return DirichletDist(l) if r is None else DirichletProcess(l, r)
+class Dirichlet(Dist, Vector):
 
+    def __init__(self, alpha, dtype=None):
+        self.alpha = tk.as_array(alpha, dtype)
 
-class DirichletDist(BaseDist):
+    @property
+    def dtype(self):
+        return self.alpha.dtype
 
-    def __init__(self, *args):
-        alpha, = (np.asarray(a) for a in args if a is not None)
-        self.params = alpha,
-        self.dof = alpha.sum()
-        self.mean = alpha / alpha.sum()
-        self.log_mean = sp.digamma(alpha) - sp.digamma(alpha.sum())
+    @property
+    def sum(self):
+        return tk.sum(self.alpha, axis=-1)
 
-    def log_pdf(self, x):
-        alpha, = self.params
+    @property
+    def mean(self):
+        return self.alpha / self.sum[..., None]
+
+    @property
+    def mean_log(self):
+        return tk.digamma(self.alpha) - tk.digamma(self.sum)[..., None]
+
+    def log_pdf(self, x, condition=None):
+        x = wrap_vector(x, self.dtype)
         return (
-            + sp.gammaln(alpha.sum())
-            - sp.gammaln(alpha).sum()
-            + sp.xlogy(alpha - 1, x).sum()
-        )
-
-    def cross_entropy(self, *args):
-        alpha, = (np.asarray(a) for a in args if a is not None)
-        return -(
-            + sp.gammaln(alpha.sum()) / alpha.size
-            - sp.gammaln(alpha)
-            + (alpha - 1) * self.log_mean
+            tk.lgamma(self.sum)
+            - tk.sum(tk.lgamma(self.alpha), axis=-1)
+            + tk.sum((self.alpha - 1) * x.mean_log, axis=-1)
         )

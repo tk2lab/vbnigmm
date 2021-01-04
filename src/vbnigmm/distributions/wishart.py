@@ -1,47 +1,50 @@
-"""Wishart distributions."""
+from .. import backend as tk
 
-__author__ = 'TAKEKAWA Takashi <takekawa@tk2lab.org>'
-__credits__ = 'Copyright 2018, TAKEKAWA Takashi'
-
-
-import numpy as np
-import scipy.special as sp
-
-from .basedist import BaseDist
-from .math  import multidigamma
+from .base import Dist
+from ..linalg.matrix import Matrix, wrap_matrix
 
 
-class Wishart(BaseDist):
+class Wishart(Dist, Matrix):
 
-    def __init__(self, s, t, inv=False):
-        s, t = map(np.asarray, (s, t))
+    def __init__(self, alpha, beta, inv=False, dtype=None):
+        self.alpha = tk.as_array(alpha, dtype)
+        self.beta = tk.as_array(beta, dtype)
+        self.inv_beta = tk.inv(self.beta)
         if inv:
-            t = np.linalg.inv(t)
-        d = t.shape[-1]
-        self.params = s, t
-        self.prec_factor = s
-        self.mean = t * s[..., None, None]
+            self.beta, self.inv_beta = self.inv_beta, self.beta
 
     @property
-    def log_det_mean(self):
-        s, t = self.params
-        d = t.shape[-1]
-        return multidigamma(s / 2, d) + np.linalg.slogdet(t * 2)[1]
+    def dtype(self):
+        return self.alpha.dtype
 
-    def cross_entropy(self, s, t, inv=False):
-        s, t = map(np.asarray, (s, t))
-        d = t.shape[-1]
-        if inv:
-            return - (
-                + s * np.linalg.slogdet(t / 2)[1] / 2
-                - sp.multigammaln(s / 2, d)
-                + (s - d - 1) * self.log_det_mean / 2
-                - (t * self.mean).sum(axis=(-2, -1)) / 2
-            )
-        else:
-            return - (
-                - s * np.linalg.slogdet(t * 2)[1] / 2
-                - sp.multigammaln(s / 2, d)
-                + (s - d - 1) * self.log_det_mean / 2
-                - (np.linalg.inv(t) * self.mean).sum(axis=(-2, -1)) / 2
-            )
+    @property
+    def dim(self):
+        return self.beta.shape[-1]
+
+    @property
+    def d(self):
+        return tk.cast(self.dim, self.alpha.dtype)
+
+    @property
+    def mean(self):
+        return self.beta * self.alpha[..., None, None]
+
+    @property
+    def mean_inv(self):
+        return self.inv_beta / (self.alpha - self.d - 1)[..., None, None]
+
+    @property
+    def mean_log_det(self):
+        return (
+            tk.multi_digamma(self.alpha / 2, self.dim)
+            + self.d * tk.log2 + tk.log_det(self.beta)
+        )
+
+    def log_pdf(self, x, condition=None):
+        x = wrap_matrix(x, self.dtype)
+        return (
+            - tk.multi_lgamma(self.alpha / 2, self.dim)
+            - (self.alpha / 2) * (self.d * tk.log2 + tk.log_det(self.beta))
+            + ((self.alpha - self.d - 1) / 2) * x.mean_log_det
+            - (1 / 2) * tk.sum(x.mean * self.inv_beta, axis=(-2, -1))
+        )
