@@ -1,5 +1,7 @@
 from . import current as tk
-from .search import search, integrate, where_func
+
+from .search import search, integrate
+from .tri import sinh, cosh, tanh, sech, log_cosh
 
 
 def log_kv(v, x):
@@ -22,14 +24,14 @@ def log_kv(v, x):
 
     t0 = tol * tk.ones_like(x)
     t1 = tk.ones_like(x)
-    tp = where_func(tk.zeros_like(x), c, _search_peak, (t0, t1, v, x))
+    tp = tk.where_func(tk.zeros_like(x), c, _search_peak, (t0, t1, v, x))
     fb = _func(tp, v, x) + tk.log(eps)
 
     tv = fb / v
     lv = tv - tk.log(2 * v / x)
     cond = (tv > 0) | (_approx_func(0, tv, lv) < 0)
     t0 = tk.where(tv > 0, tv, 0)
-    t0 = where_func(t0, cond, _search_bottom, (tp, tv + tol, tv, lv))
+    t0 = tk.where_func(t0, cond, _search_bottom, (tp, tv + tol, tv, lv))
     t1 = _search_bottom(tp, tp + 1, tv, lv)
     return tk.reshape(integrate(_func, t0, t1, (v, x), n), shape)
 
@@ -40,15 +42,15 @@ def dv_log_kv(v, x):
 
 
 def _func(t, v, x):
-    return tk.log_cosh(v * t) - x * tk.cosh(t)
+    return log_cosh(v * t) - x * cosh(t)
 
 
 def _deriv1(t, v, x):
-    return v * tk.tanh(v * t) - x * tk.sinh(t)
+    return v * tanh(v * t) - x * sinh(t)
 
 
 def _deriv2(t, v, x):
-    return (v * tk.sech(v * t)) ** 2 - x * tk.cosh(t)
+    return (v * sech(v * t)) ** 2 - x * cosh(t)
 
 
 def _approx_func(t, tv, lv):

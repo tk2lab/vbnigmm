@@ -48,6 +48,7 @@ transpose = _tf.transpose
 
 # reduce
 all = _tf.math.reduce_all
+any = _tf.math.reduce_any
 min = _tf.math.reduce_min
 max = _tf.math.reduce_max
 sum = _tf.math.reduce_sum
@@ -76,3 +77,9 @@ native_all = _np.all
 def scatter_update(dst, src):
     update =_tf.IndexedSlices(src, _tf.range(_tf.shape(src)[0]))
     dst.scatter_update(update)
+
+
+def where_func(base, cond, func, args):
+    idx = _tf.where(cond)
+    args = [_tf.gather(x, idx[:, 0]) for x in args]
+    return _tf.tensor_scatter_nd_update(base, idx, func(*args))
