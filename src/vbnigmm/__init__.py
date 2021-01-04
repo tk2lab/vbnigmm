@@ -1,5 +1,5 @@
-from .mixture.gauss import GaussMixture
-from .mixture.nig import NormalInverseGaussMixture
+from .mixture.gmm import GaussMixture
+from .mixture.nigmm import NormalInverseGaussMixture
 
 
 __all__ = [

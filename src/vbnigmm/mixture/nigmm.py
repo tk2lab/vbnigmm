@@ -1,8 +1,8 @@
 from .. import backend as tk
 
-from .mixture import Mixture
-from .nig_params import NormalInverseGaussMixtureParameters
+from .nigmm_params import NormalInverseGaussMixtureParameters
 
+from .base import Mixture
 from ..distributions.invgauss import InverseGauss
 from ..linalg.vector import precision
 

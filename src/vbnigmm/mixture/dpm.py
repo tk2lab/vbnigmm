@@ -4,6 +4,10 @@ from ..distributions.base import Dist
 from ..distributions.dirichlet import Dirichlet
 
 
+def gen_dpm_params(alpha, py):
+    return 1.0, alpha, py
+
+
 class DirichletProcess(Dist):
 
     def __init__(self, alpha, beta, gamma=0, dtype=None):

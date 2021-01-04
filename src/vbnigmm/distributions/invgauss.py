@@ -5,6 +5,20 @@ from .gamma import Gamma
 from ..linalg.scalar import Scalar, wrap_scalar
 
 
+def gen_gig_params(typ, mu, sd):
+    if typ == 'invgauss':
+        f0 = (mu ** 3) / (sd ** 2)
+        g0 = mu / (sd ** 2)
+        h0 = -1
+    elif typ == 'gamma':
+        f0 = mu / (sd ** 2)
+        g0 = 0.0
+        h0 = (mu ** 2) / (sd ** 2)
+    else:
+        raise ValueError('typ should be invgauss or gamma')
+    return f0, g0, h0
+
+
 class InverseGauss(Dist, Scalar):
 
     def __new__(cls, a, b, c=-1 / 2, dtype=None):

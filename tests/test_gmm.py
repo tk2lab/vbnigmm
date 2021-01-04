@@ -9,7 +9,7 @@ tf.keras.backend.set_floatx('float64')
 
 #n, d = 10000, 12
 #x = np.random.randn(n, d).astype(np.float32)
-x, y = make_data(d=4, normality=10, difficulty=0.1, seed=1234, population=[100]*10)
+x, y = make_data(d=4, normality=3, difficulty=0.3, seed=1234, population=[100]*10)
 
 callbacks = [
     tf.keras.callbacks.EarlyStopping(

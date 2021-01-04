@@ -1,14 +1,9 @@
-from collections import namedtuple
-
 from .. import backend as tk
 
-from .check import check_data
-from .check import check_concentration
-from .check import check_covariance
-
-from .mixture import Mixture
 from .utils import MixtureParameters
-from .dpm import DirichletProcess
+from .base import Mixture
+
+from .dpm import DirichletProcess, gen_dpm_params
 from ..distributions.wishart import Wishart
 from ..distributions.gauss import Gauss
 
@@ -20,16 +15,19 @@ class GaussMixtureParameters(MixtureParameters):
 
     @classmethod
     def make_prior(cls, x, mean=None, cov=None,
-                   concentration=1.0, concentration_decay=0.0,
-                   mean_scale=1.0, cov_scale=0.3, cov_reliability=2.0):
-        m0, cov = check_data(x, mean, cov)
-        l0, r0, py = check_concentration(concentration, concentration_decay)
-        s0, t0 = check_covariance(cov_reliability, cov_scale, cov)
-        u0 = (cov_scale / mean_scale) ** 2
+                   concentration_args=(1.0, 0.0),
+                   mean_scale=1.0, cov_scale=0.3, cov_ddof=0.0):
+        num, dim = x.shape
+        m0 = mean or tk.mean(x, axis=0)
+        cov = cov or (tk.transpose(x - m0) @ (x - m0)) / (num - 1)
+        l0, r0, py = gen_dpm_params(*concentration_args)
+        s0 = dim + cov_ddof
+        t0 = cov * (cov_scale ** 2) * s0
+        u0 = (cov_scale ** 2) / (mean_scale ** 2)
         return cls(l0, r0, s0, u0, m0, t0, py, x.dtype)
 
     def __init__(self, l, r, s, u, m, t, py=0.0, dtype=None):
-        Params = namedtuple('Params', self.var_names)
+        Params = tk.namedtuple('Params', self.var_names)
         self.params = Params(l, r, s, u, m, t)
         self.size = tk.size(s)
         self.dim = tk.shape(m)[-1]

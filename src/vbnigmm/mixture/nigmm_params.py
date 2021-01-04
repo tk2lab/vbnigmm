@@ -1,19 +1,10 @@
-from collections import namedtuple
-
 from .. import backend as tk
 
-from .check import check_data
-from .check import check_concentration
-from .check import check_covariance
-from .check import check_bias
-from .check import check_normality
-from .check import check_scale
-
 from .utils import MixtureParameters
-from .dpm import DirichletProcess
+from .dpm import DirichletProcess, gen_dpm_params
 from ..distributions.wishart import Wishart
-from ..distributions.invgauss import InverseGauss
 from ..distributions.gauss import Gauss
+from ..distributions.invgauss import InverseGauss, gen_gig_params
 
 
 class NormalInverseGaussMixtureParameters(MixtureParameters):
@@ -22,23 +13,26 @@ class NormalInverseGaussMixtureParameters(MixtureParameters):
     var_types = 'o', 'o', 's', 's', 's', 's', 's', 's', 's', 'v', 'v', 'm'
 
     @classmethod
-    def make_prior(cls, x, mean=None, cov=None, bias=None,
-                   concentration=1.0, concentration_decay=0.0,
-                   normality_type='gamma',
-                   normality_mean=3.0, normality_dof=1.0,
-                   cov_scale=0.3, cov_dof=2.0,
-                   mean_scale=1.0, bias_scale=0.3, mean_bias_factor=0.0):
-        m0, cov = check_data(x, mean, cov)
-        n0 = check_bias(m0, bias)
-        l0, r0, py = check_concentration(concentration, concentration_decay)
-        s0, t0 = check_covariance(cov_dof, cov_scale, cov)
-        f0, g0, h0 = check_normality(normality_type, normality_mean, normality_dof)
-        u0, v0 = check_scale(cov_scale, mean_scale, bias_scale)
+    def make_prior(cls, x, mean=None, bias=None, cov=None,
+                   concentration_args=(1.0, 0.0),
+                   normality_args=('gamma', 10.0, 20.0),
+                   mean_scale=1.0, cov_scale=0.3, bias_scale=0.3,
+                   mean_bias_factor=0.0, cov_ddof=0.0):
+        num, dim = x.shape
+        m0 = mean or tk.mean(x, axis=0)
+        n0 = bias or tk.zeros_like(m0)
+        cov = cov or (tk.transpose(x - m0) @ (x - m0)) / (num - 1)
+        l0, r0, py = gen_dpm_params(*concentration_args)
+        f0, g0, h0 = gen_gig_params(*normality_args)
+        s0 = dim + cov_ddof
+        t0 = cov * (cov_scale ** 2) * s0
+        u0 = (cov_scale ** 2) / (mean_scale ** 2)
+        v0 = 1 / (bias_scale ** 2)
         w0 = mean_bias_factor
         return cls(l0, r0, f0, g0, h0, s0, u0, v0, w0, m0, n0, t0, py, x.dtype)
 
     def __init__(self, l, r, f, g, h, s, u, v, w, m, n, t, py=0.0, dtype=None):
-        Params = namedtuple('Params', self.var_names)
+        Params = tk.namedtuple('Params', self.var_names)
         self.params = Params(l, r, f, g, h, s, u, v, w, m, n, t)
         self.size = tk.size(f)
         self.dim = tk.shape(t)[-1]

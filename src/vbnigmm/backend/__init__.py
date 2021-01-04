@@ -1,3 +1,5 @@
+from collections import namedtuple
+
 from .current import *
 from .constant import *
 from .tri import *
