@@ -1,5 +1,4 @@
 import tensorflow as _tf
-import tensorflow_probability as _tfp
 
 
 abs = _tf.math.abs
@@ -22,4 +21,3 @@ digamma = _tf.math.digamma
 
 k0_e = _tf.math.special.bessel_k0e
 k1_e = _tf.math.special.bessel_k1e
-kv_e = _tfp.math.bessel_kve
