@@ -6,6 +6,10 @@ cosh = _tk.cosh
 tanh = _tk.tanh
 
 
+def log_sinh(x):
+    return _tk.log(_tk.sinh(x))
+
+
 def log_cosh(x):
     return x + _tk.log1p(_tk.expm1(-2 * x) / 2)
 
