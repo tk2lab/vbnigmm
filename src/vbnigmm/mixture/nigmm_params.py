@@ -15,7 +15,7 @@ class NormalInverseGaussMixtureParameters(MixtureParameters):
     @classmethod
     def make_prior(cls, x, mean=None, bias=None, cov=None,
                    concentration_args=(1.0, 0.0),
-                   normality_args=('gamma', 10.0, 20.0),
+                   normality_args=('gamma', 10.0, 0.5),
                    mean_scale=1.0, cov_scale=0.3, bias_scale=0.3,
                    mean_bias_factor=0.0, cov_ddof=0.0):
         num, dim = x.shape

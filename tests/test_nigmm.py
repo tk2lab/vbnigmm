@@ -24,7 +24,7 @@ callbacks = [
 ]
 solver = Model(
     init_e='kmeans',
-    normality_args=('gamma', 10, 20),
+    normality_args=('gamma', 10, 0.5),
     cov_ddof=0,
 )
 solver.fit(x, steps_per_epoch=100, epochs=100, callbacks=callbacks)

@@ -5,15 +5,15 @@ from .gamma import Gamma
 from ..linalg.scalar import Scalar, wrap_scalar
 
 
-def gen_gig_params(typ, mu, sd):
+def gen_gig_params(typ, mu, prec):
     if typ == 'invgauss':
-        f0 = (mu ** 3) / (sd ** 2)
-        g0 = mu / (sd ** 2)
+        f0 = (prec ** 2) * mu
+        g0 = (prec ** 2) / mu
         h0 = -1
     elif typ == 'gamma':
-        f0 = mu / (sd ** 2)
+        f0 = (prec ** 2) / mu
         g0 = 0.0
-        h0 = (mu ** 2) / (sd ** 2)
+        h0 = (prec ** 2)
     else:
         raise ValueError('typ should be invgauss or gamma')
     return f0, g0, h0
