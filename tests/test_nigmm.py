@@ -11,15 +11,16 @@ tf.keras.backend.set_floatx('float64')
 #x = np.random.randn(n, d).astype(np.float32)
 x, y = make_data(
     d=4,
-    normality=100,
-    difficulty=0.3,
+    normality=10,
+    difficulty=0.2,
     population=[100]*10,
 )
 
 callbacks = [
     tf.keras.callbacks.EarlyStopping(
-        'loss', restore_best_weights=True, verbose=1,
+        'loss', verbose=1,
         min_delta=1e-5, patience=3,
+        restore_best_weights=True,
     )
 ]
 solver = Model(
@@ -27,7 +28,9 @@ solver = Model(
     normality_args=('gamma', 10, 0.5),
     cov_ddof=0,
 )
-solver.fit(x, steps_per_epoch=100, epochs=100, callbacks=callbacks)
+print('solver')
+solver.fit(x, steps_per_epoch=20, epochs=100, callbacks=callbacks)
+print('fit')
 print(solver.history.history)
 q = solver.posterior
 print('alpha', q.alpha.mean)

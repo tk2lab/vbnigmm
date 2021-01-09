@@ -19,10 +19,10 @@ def search_extend(func, t0, t1, args):
     return t0, t1
 
 
-def search_shrink(func, deriv, t0, t1):
+def search_shrink(func, deriv, t0, t1, tol):
     def cond(t0, f0, t1, f1):
         dratio = deriv(t1) * (t1 - t0) / (f1 - f0)
-        return tk.any((dratio < 1.0) | (2.0 < dratio))
+        return tk.any(((dratio < 1.0) | (2.0 < dratio)) & (tk.abs(f1) > tol))
     def body(t0, f0, t1, f1):
         tm = t0 + 0.5 * (t1 - t0)
         fm = func(tm)
@@ -55,11 +55,5 @@ def search(func, deriv, t0, t1, args, tol):
         return deriv(t, *args)
 
     t0, t1 = search_extend(func, t0, t1, args)
-    t0, t1 = search_shrink(_func, _deriv, t0, t1)
+    t0, t1 = search_shrink(_func, _deriv, t0, t1, tol)
     return newton(_func, _deriv, t1, tol)
-
-
-def integrate(func, t0, t1, args, n):
-    h = (t1 - t0) / n
-    t = t0 + h / 2 + h * tk.range(n - 1, dtype=t0.dtype)[:, None]
-    return tk.log_sum_exp(func(t, *args), axis=0) + tk.log(h)

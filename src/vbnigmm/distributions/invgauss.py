@@ -7,11 +7,11 @@ from ..linalg.scalar import Scalar, wrap_scalar
 
 def gen_gig_params(typ, mu, prec):
     if typ == 'invgauss':
-        f0 = (prec ** 2) * mu
-        g0 = (prec ** 2) / mu
+        f0 = (prec ** 2) / mu
+        g0 = (prec ** 2) * mu
         h0 = -1
     elif typ == 'gamma':
-        f0 = (prec ** 2) / mu
+        f0 = 2 * (prec ** 2) / mu
         g0 = 0.0
         h0 = (prec ** 2)
     else:

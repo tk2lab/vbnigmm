@@ -1,4 +1,5 @@
-from ..backend import current as _tk
+from . import current as _tk
+from .constant import log2
 
 
 sinh = _tk.sinh
@@ -7,7 +8,7 @@ tanh = _tk.tanh
 
 
 def log_sinh(x):
-    return _tk.log(_tk.sinh(x))
+    return _tk.where(x < 20, _tk.log(_tk.sinh(x)), x - log2)
 
 
 def log_cosh(x):

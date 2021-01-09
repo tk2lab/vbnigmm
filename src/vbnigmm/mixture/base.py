@@ -11,7 +11,7 @@ class Mixture(tk.Model):
         self.init_e = init_e
         self.prior_config = args
 
-    def fit(self, x, y=None, steps_per_epoch=100, **kwargs):
+    def fit(self, x, y=None, steps_per_epoch=20, epochs=100, **kwargs):
         x = tk.as_array(x, self.dtype)
         num, dim = x.shape
         size = int((num + self.init_n - 1) / self.init_n)
@@ -24,7 +24,7 @@ class Mixture(tk.Model):
         data = tk.Dataset.from_tensors(x).repeat(steps_per_epoch)
         self._y = self.init_e if y is None else y
         self._max_size = size
-        super().fit(data, **kwargs)
+        super().fit(data, epochs=epochs, **kwargs)
 
     def predict(self, x):
         return tk.argmax(self.predict_proba(x), axis=-1, dtype=tk.int32)
