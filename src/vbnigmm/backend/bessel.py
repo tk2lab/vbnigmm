@@ -81,12 +81,9 @@ def log_dv_kv(v, x, dtype=None):
     t1 = tk.ones(shape, dtype)
     tp = _search_peak(t0, t1, v, x)
     fb = _func(tp, v, x) + tk.log(eps)
-    tk.print('tp', tp, fb)
 
     t0 = tk.zeros(shape, dtype)
     cond = _func(t0, v, x, fb) < 0
     t0 = tk.where_func(t0, cond, _search_bottom, (tp, t0 + eps, v, x, fb))
-    tk.print('t0', t0, _func(t0, v, x))
     t1 = _search_bottom(tp, tp + 1, v, x, fb)
-    tk.print('t1', t1, _func(t1, v, x))
     return tk.reshape(sign * integrate(_func, t0, t1, (v, x), n), orig_shape)
