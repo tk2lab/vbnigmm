@@ -63,7 +63,10 @@ class InverseGauss(Dist, Scalar):
     def mean_log(self):
         return (
             (1 / 2) * (tk.log(self.b) - tk.log(self.a))
-            + tk.dv_log_kv(self.c, self._mu)
+            + tk.exp(
+                tk.log_dv_kv(self.c, self._mu)
+                - tk.log_kv(self.c, self._mu)
+            )
         )
 
     @property
