@@ -1,6 +1,7 @@
 import tensorflow as _tf
 
 
+sign = _tf.math.sign
 abs = _tf.math.abs
 round = _tf.math.round
 

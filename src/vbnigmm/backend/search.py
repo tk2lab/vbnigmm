@@ -22,7 +22,7 @@ def search_extend(func, t0, t1, args):
 def search_shrink(func, deriv, t0, t1):
     def cond(t0, f0, t1, f1):
         dratio = deriv(t1) * (t1 - t0) / (f1 - f0)
-        return tk.any((dratio < 1.0) & (2.0 < dratio))
+        return tk.any((dratio < 1.0) | (2.0 < dratio))
     def body(t0, f0, t1, f1):
         tm = t0 + 0.5 * (t1 - t0)
         fm = func(tm)
@@ -41,7 +41,7 @@ def search_shrink(func, deriv, t0, t1):
 
 def newton(func, deriv, t, tol):
     def cond(newt, oldt):
-        return tk.any(tk.abs(newt - oldt) < tol)
+        return tk.any(tk.abs(newt - oldt) > tol)
     def body(newt, oldt):
         return newt - func(newt) / deriv(newt), newt
 
